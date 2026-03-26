@@ -26,6 +26,7 @@ const muonSachRouter = require('./routes/muonSach');
 const trangchinhRouter = require('./routes/trangchinh');
 const shopRoute = require('./routes/shop');
 const donHangRoute = require('./routes/donhang');
+const chuQuanRoute = require('./routes/chu_quan');
 
 
 // Cấu hình EJS và thư mục views
@@ -44,10 +45,11 @@ const requireAuth = (req, res, next) => {
     // Các route không cần đăng nhập
     const publicRoutes = ['/login', '/register', '/data', '/images', '/api/rate', '/shop', '/pdfs'];
     
-    // Cho phép các route bắt đầu bằng /shop và /pdfs
+    // Cho phép các route bắt đầu bằng /shop, /pdfs và /api
     const isPublicRoute = publicRoutes.includes(req.path) || 
                           req.path.startsWith('/shop') || 
-                          req.path.startsWith('/pdfs');
+                          req.path.startsWith('/pdfs') ||
+                          req.path.startsWith('/api');
     
     if (isPublicRoute) {
         console.log(`✅ Route công khai: ${req.path}`);
@@ -95,6 +97,9 @@ app.use('/admin/sach', sachRoute);
 app.use('/admin/muon_sach', muonSachRouter);
 app.use('/admin/don_hang', donHangRoute);
 
+// Mount API route công khai cho sách (không cần auth cho GET)
+app.use('/api', sachRoute);
+
 // Admin route chính - mount trực tiếp (phải mount trước route gốc)
 console.log('🔧 Mounting admin route tại /admin');
 app.use('/admin', adminRoute);
@@ -106,6 +111,7 @@ app.use('/data', dataRoute);
 app.use('/register', registerRoute);
 app.use('/trangchinh', trangchinhRouter);
 app.use('/shop', shopRoute);
+app.use('/chu-quan', chuQuanRoute);
 
 // Route logout
 app.get('/logout', (req, res) => {

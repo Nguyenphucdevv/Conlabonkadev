@@ -81,7 +81,7 @@ router.post('/', async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id_user
         `;
-        const values = [hoTen, soDienThoai, email, taiKhoan, matKhau, 2]; // Lưu mật khẩu gốc
+        const values = [hoTen, soDienThoai, email, taiKhoan, matKhau, 3]; // Lưu mật khẩu gốc
         const result = await pool.query(query, values);
 
         // Chuyển hướng về trang đăng nhập sau khi đăng ký thành công

@@ -192,10 +192,10 @@ router.post("/add", upload.single("Anh360"), async (req, res) => {
       "Request file:",
       req.file
         ? {
-            filename: req.file.filename,
-            path: req.file.path,
-            size: req.file.size,
-          }
+          filename: req.file.filename,
+          path: req.file.path,
+          size: req.file.size,
+        }
         : "Không có file"
     );
 
@@ -270,7 +270,7 @@ router.post("/add", upload.single("Anh360"), async (req, res) => {
     // Xử lý và validate latitude/longitude
     let latitude = null;
     let longitude = null;
-    
+
     if (Latitude && Latitude.trim() !== "") {
       const latValue = parseFloat(Latitude);
       // Latitude hợp lệ: -90 đến 90
@@ -283,7 +283,7 @@ router.post("/add", upload.single("Anh360"), async (req, res) => {
       // Làm tròn đến 8 chữ số thập phân (phù hợp với precision 11, scale 8)
       latitude = Math.round(latValue * 100000000) / 100000000;
     }
-    
+
     if (Longitude && Longitude.trim() !== "") {
       const lngValue = parseFloat(Longitude);
       // Longitude hợp lệ: -180 đến 180
@@ -347,8 +347,8 @@ router.post("/add", upload.single("Anh360"), async (req, res) => {
     );
 
     // Kiểm tra nếu request là AJAX (có header X-Requested-With hoặc Accept: application/json)
-    const isAjax = req.headers['x-requested-with'] === 'XMLHttpRequest' || 
-                   req.headers.accept && req.headers.accept.indexOf('application/json') !== -1;
+    const isAjax = req.headers['x-requested-with'] === 'XMLHttpRequest' ||
+      req.headers.accept && req.headers.accept.indexOf('application/json') !== -1;
 
     if (isAjax) {
       // Trả về JSON cho AJAX request
@@ -588,10 +588,10 @@ router.post("/update/:id", upload.single("Anh360"), async (req, res) => {
     "Request file:",
     req.file
       ? {
-          filename: req.file.filename,
-          path: req.file.path,
-          size: req.file.size,
-        }
+        filename: req.file.filename,
+        path: req.file.path,
+        size: req.file.size,
+      }
       : "Không có file"
   );
 
@@ -635,7 +635,7 @@ router.post("/update/:id", upload.single("Anh360"), async (req, res) => {
   // Xử lý và validate latitude/longitude
   let latitude = null;
   let longitude = null;
-  
+
   if (Latitude && Latitude.trim() !== "") {
     const latValue = parseFloat(Latitude);
     // Latitude hợp lệ: -90 đến 90
@@ -648,7 +648,7 @@ router.post("/update/:id", upload.single("Anh360"), async (req, res) => {
     // Làm tròn đến 8 chữ số thập phân (phù hợp với precision 11, scale 8)
     latitude = Math.round(latValue * 100000000) / 100000000;
   }
-  
+
   if (Longitude && Longitude.trim() !== "") {
     const lngValue = parseFloat(Longitude);
     // Longitude hợp lệ: -180 đến 180
@@ -771,7 +771,7 @@ router.put("/update-json/:id", async (req, res) => {
     // Xử lý và validate latitude/longitude
     let latValue = null;
     let lngValue = null;
-    
+
     if (latitude !== undefined && latitude !== null && latitude !== "") {
       const lat = parseFloat(latitude);
       if (isNaN(lat) || lat < -90 || lat > 90) {
@@ -782,7 +782,7 @@ router.put("/update-json/:id", async (req, res) => {
       }
       latValue = Math.round(lat * 100000000) / 100000000;
     }
-    
+
     if (longitude !== undefined && longitude !== null && longitude !== "") {
       const lng = parseFloat(longitude);
       if (isNaN(lng) || lng < -180 || lng > 180) {
@@ -1069,7 +1069,7 @@ router.get("/all-books", async (req, res) => {
 // Route để xem sách của thư viện
 router.get("/books/:id", async (req, res) => {
   const { id } = req.params;
-  
+
   // QUAN TRỌNG: Kiểm tra nếu id là "all" thì không xử lý ở đây
   // Route /books/all đã được định nghĩa riêng ở trên và phải được match trước
   if (id === "all") {
@@ -1083,7 +1083,7 @@ router.get("/books/:id", async (req, res) => {
       error: "Route không tồn tại. Vui lòng sử dụng /books/all để lấy tất cả sách.",
     });
   }
-  
+
   try {
     console.log("📚 ===== BẮT ĐẦU LẤY SÁCH THƯ VIỆN =====");
     console.log("📚 Thư viện ID:", id);
@@ -1091,60 +1091,50 @@ router.get("/books/:id", async (req, res) => {
     console.log("📚 ID value:", JSON.stringify(id));
 
     // Validate ID - kiểm tra kỹ hơn
-    if (!id || id === "" || id === "undefined" || id === "null" || id.trim() === "") {
-      console.error("❌ ID thư viện rỗng hoặc không hợp lệ:", id);
+    if (!id || id.trim() === "") {
       return res.status(400).json({
         success: false,
-        error: "ID thư viện không hợp lệ. Vui lòng chọn thư viện hợp lệ.",
+        error: "ID thư viện không được để trống.",
       });
     }
 
-    const idNum = parseInt(id);
-    if (isNaN(idNum) || idNum <= 0) {
-      console.error("❌ ID thư viện không phải là số hợp lệ:", id);
-      return res.status(400).json({
-        success: false,
-        error: "ID thư viện không hợp lệ. Vui lòng chọn thư viện hợp lệ.",
-      });
-    }
+    const libraryId = id.trim();
 
-    // Lấy thông tin thư viện
+    // Lấy thông tin thư viện (dùng id dạng chuỗi hoặc số đều được)
     const libraryResult = await pool.query(
       "SELECT * FROM thu_vien WHERE id_thuvien = $1",
-      [idNum]
+      [libraryId]
     );
 
     if (libraryResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        error: "Không tìm thấy thư viện",
+        error: "Không tìm thấy thư viện với ID: " + libraryId,
       });
     }
 
     const library = libraryResult.rows[0];
     console.log("📚 Thư viện:", library.ten_thuvien);
 
-    // Lấy danh sách sách của thư viện
+    // Lấy danh sách sách của thư viện này từ thu_vien_sach
     const booksResult = await pool.query(
-      `
-            SELECT 
-                s.id_sach,
-                s.ten_sach,
-                s.tac_gia,
-                s.nam_xuat_ban,
-                s.slton,
-                s.tongsl,
-                s.digital_file,
-                ts.so_luong as so_luong_trong_thu_vien,
-                ts.ngay_them,
-                COALESCE(tl.ten_theloai, 'Chưa phân loại') as ten_theloai
-            FROM thu_vien_sach ts
-            JOIN sach s ON ts.id_sach = s.id_sach
-            LEFT JOIN the_loai tl ON s.id_theloai = tl.id_theloai
-            WHERE ts.id_thuvien = $1
-            ORDER BY s.ten_sach ASC
-        `,
-      [idNum]
+      `SELECT 
+          s.id_sach,
+          s.ten_sach,
+          s.tac_gia,
+          s.nam_xuat_ban,
+          s.slton,
+          s.tongsl,
+          s.digital_file,
+          ts.so_luong as so_luong_trong_thu_vien,
+          ts.ngay_them,
+          COALESCE(tl.ten_theloai, 'Chưa phân loại') as ten_theloai
+       FROM thu_vien_sach ts
+       JOIN sach s ON ts.id_sach = s.id_sach
+       LEFT JOIN the_loai tl ON s.id_theloai = tl.id_theloai
+       WHERE ts.id_thuvien = $1
+       ORDER BY s.ten_sach ASC`,
+      [libraryId]
     );
 
     console.log("📚 Số sách tìm thấy:", booksResult.rows.length);

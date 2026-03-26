@@ -345,6 +345,39 @@ router.post('/update-quantity', async (req, res) => {
     }
 });
 
+// ============================================
+// API GET /api/books - Lấy danh sách tất cả sách (JSON)
+// Endpoint: GET /api/books
+// ============================================
+router.get('/books', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                s.id_sach,
+                s.ten_sach,
+                s.tac_gia,
+                s.nam_xuat_ban,
+                s.slton,
+                s.tongsl,
+                COALESCE(s.gia, 0) AS gia,
+                s.gia_goc,
+                tl.ten_theloai
+            FROM sach s
+            LEFT JOIN the_loai tl ON s.id_theloai = tl.id_theloai
+            ORDER BY s.id_sach ASC
+        `);
+
+        res.json({
+            success: true,
+            total: result.rows.length,
+            data: result.rows
+        });
+    } catch (error) {
+        console.error('❌ Lỗi GET /api/books:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Route test để kiểm tra route có hoạt động không
 router.get('/test-route', (req, res) => {
     res.json({ 

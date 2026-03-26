@@ -1,0 +1,509 @@
+# 📚 Bổ Sung: Ví Dụ Chi Tiết & Câu Hỏi Khó
+
+> **Mục đích**: Thêm nhiều ví dụ cụ thể, xác nhận vị trí code, và chuẩn bị cho các câu hỏi khó
+
+---
+
+## ✅ XÁC NHẬN VỊ TRÍ CODE (Đã kiểm tra)
+
+### 🔍 **Hàm tìm kiếm thư viện**
+
+**File**: [views/index.ejs](file:///c:/Users/ZENBOOK/Desktop/%C4%90%E1%BB%92%20%C3%81N%20CHUY%C3%8AN%20NGH%C3%80NH/new%20thuvien2/views/index.ejs)  
+**Dòng**: **1612-1625** ✅ Đã xác nhận
+
+```javascript
+function searchLibraries(libraries, query) {
+  const searchTerm = query.toLowerCase();
+  return libraries.filter((library) => {
+    const name = library.properties.TenThuVien?.toLowerCase() || "";
+    const address = library.properties.DiaChi?.toLowerCase() || "";
+    const type = library.properties.phanloai?.toLowerCase() || "";
+
+    return (
+      name.includes(searchTerm) ||
+      address.includes(searchTerm) ||
+      type.includes(searchTerm)
+    );
+  });
+}
+```
+
+**Cách tìm nhanh**:
+```
+Ctrl + P → index.ejs
+Ctrl + F → function searchLibraries
+Hoặc Ctrl + G → 1612
+```
+
+---
+
+### 📐 **Hàm tính khoảng cách (Haversine)**
+
+**File**: [views/index.ejs](file:///c:/Users/ZENBOOK/Desktop/%C4%90%E1%BB%92%20%C3%81N%20CHUY%C3%8AN%20NGH%C3%80NH/new%20thuvien2/views/index.ejs)  
+**Dòng**: **2161-2180** ✅ Đã xác nhận
+
+```javascript
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Bán kính Trái Đất (km)
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Khoảng cách (km)
+  return distance;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+```
+
+**Cách tìm**:
+```
+Ctrl + P → index.ejs
+Ctrl + F → calculateDistance
+Hoặc Ctrl + G → 2161
+```
+
+---
+
+## 🎯 CÁC TÌNH HUỐNG KHÓ & CÁCH XỬ LÝ
+
+### **Tình huống 1: "Giải thích công thức Haversine chi tiết"**
+
+#### ❓ **Câu hỏi**:
+> "Em nói em dùng công thức Haversine. Vậy công thức này hoạt động như thế nào? Giải thích từng bước."
+
+#### ✅ **Cách trả lời**:
+
+**Bước 1: Mở code**
+```
+Ctrl + P → index.ejs
+Ctrl + G → 2161
+```
+
+**Bước 2: Giải thích**
+> "Thưa thầy/cô, công thức Haversine tính khoảng cách giữa 2 điểm trên mặt cầu. Em xin giải thích từng bước:
+> 
+> **Bước 1: Chuyển đổi độ sang radian** (dòng 2163-2164)
+> ```javascript
+> const dLat = deg2rad(lat2 - lat1);
+> const dLon = deg2rad(lon2 - lon1);
+> ```
+> Vì hàm lượng giác trong JavaScript dùng radian, em phải chuyển từ độ (degree) sang radian.
+> 
+> **Bước 2: Tính a** (dòng 2165-2170)
+> ```javascript
+> const a =
+>   Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+>   Math.cos(deg2rad(lat1)) *
+>     Math.cos(deg2rad(lat2)) *
+>     Math.sin(dLon / 2) *
+>     Math.sin(dLon / 2);
+> ```
+> Đây là công thức Haversine chính. Nó tính góc giữa 2 điểm trên mặt cầu.
+> 
+> **Bước 3: Tính c** (dòng 2171)
+> ```javascript
+> const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+> ```
+> `c` là góc trung tâm giữa 2 điểm (tính bằng radian).
+> 
+> **Bước 4: Tính khoảng cách** (dòng 2172)
+> ```javascript
+> const distance = R * c; // R = 6371 km
+> ```
+> Nhân góc với bán kính Trái Đất để ra khoảng cách thực tế (km).
+> 
+> **Tại sao dùng Haversine?**
+> Vì Trái Đất là hình cầu, không thể dùng công thức Euclidean thông thường. Haversine cho kết quả chính xác hơn cho khoảng cách ngắn (< 1000km)."
+
+---
+
+### **Tình huống 2: "Tại sao không dùng Google Maps API?"**
+
+#### ❓ **Câu hỏi**:
+> "Em dùng Leaflet.js và tự tính khoảng cách. Tại sao không dùng Google Maps API cho tiện?"
+
+#### ✅ **Cách trả lời**:
+
+> "Thưa thầy/cô, em có cân nhắc giữa Google Maps và Leaflet.js:
+> 
+> **Lý do chọn Leaflet.js**:
+> 1. **Miễn phí hoàn toàn**: Leaflet + OpenStreetMap không giới hạn requests
+> 2. **Nhẹ hơn**: Leaflet.js chỉ 42KB, Google Maps API nặng hơn nhiều
+> 3. **Tùy chỉnh dễ**: Leaflet cho phép custom marker, popup, style dễ dàng
+> 4. **Học tập**: Em muốn hiểu rõ cách tính khoảng cách thay vì dùng API có sẵn
+> 
+> **Google Maps API có ưu điểm**:
+> - Chỉ đường chính xác hơn (có tính đến đường đi thực tế)
+> - Thông tin giao thông real-time
+> 
+> Nhưng với mục đích đề tài (tìm thư viện gần nhất), Leaflet + Haversine đã đủ chính xác và tiết kiệm chi phí."
+
+---
+
+### **Tình huống 3: "Code này có vấn đề gì không?"**
+
+#### ❓ **Câu hỏi**:
+> "Em thấy code mượn sách của em có vấn đề gì không? Nếu 2 user cùng mượn sách cuối cùng thì sao?"
+
+#### ✅ **Cách trả lời** (Thành thật + Giải pháp):
+
+> "Thưa thầy/cô, đây là một **race condition** mà em nhận thức được:
+> 
+> **Vấn đề**:
+> - User A kiểm tra: `slton = 1` → OK
+> - User B kiểm tra: `slton = 1` → OK
+> - Cả 2 đều thêm yêu cầu thành công
+> - Khi admin duyệt cả 2 → `slton` sẽ âm!
+> 
+> **Giải pháp em đã áp dụng** (một phần):
+> - Em không trừ `slton` ngay khi thêm yêu cầu
+> - Chỉ trừ khi admin duyệt
+> - Admin có thể kiểm tra `slton` trước khi duyệt
+> 
+> **Giải pháp tốt hơn** (nếu có thời gian):
+> 1. **Database transaction**: Dùng `BEGIN` ... `COMMIT` để lock row
+> 2. **Optimistic locking**: Kiểm tra `slton` lại trước khi UPDATE
+> 3. **Queue system**: Xử lý yêu cầu tuần tự
+> 
+> Em chọn cách đơn giản vì:
+> - Đề tài nhỏ, ít user đồng thời
+> - Admin có thể kiểm soát thủ công
+> - Tập trung vào tính năng chính (bản đồ, tìm kiếm)"
+
+**Ưu điểm**: Thể hiện bạn hiểu vấn đề + có giải pháp + biết ưu tiên
+
+---
+
+### **Tình huống 4: "Tại sao lưu session thay vì JWT?"**
+
+#### ❓ **Câu hỏi**:
+> "Em dùng express-session để lưu thông tin đăng nhập. Tại sao không dùng JWT (JSON Web Token)?"
+
+#### ✅ **Cách trả lời**:
+
+> "Thưa thầy/cô, em có cân nhắc giữa Session và JWT:
+> 
+> **Lý do chọn Session**:
+> 1. **Đơn giản hơn**: Session dễ implement với `express-session`
+> 2. **Bảo mật hơn**: Session lưu server-side, JWT lưu client-side (dễ bị XSS)
+> 3. **Dễ revoke**: Xóa session ngay lập tức khi logout, JWT phải đợi expire
+> 4. **Phù hợp với đề tài**: Ứng dụng web thông thường, không cần stateless
+> 
+> **JWT có ưu điểm**:
+> - Stateless: Không cần lưu server
+> - Scalable: Dễ mở rộng nhiều server
+> - Phù hợp với mobile app, microservices
+> 
+> Với đề tài quản lý thư viện (web app đơn giản), Session là lựa chọn hợp lý hơn."
+
+---
+
+### **Tình huống 5: "Demo live: Thêm 1 tính năng mới"**
+
+#### ❓ **Câu hỏi**:
+> "Em có thể thêm 1 button 'Xem trên Google Maps' vào popup thư viện không? Demo ngay bây giờ."
+
+#### ✅ **Cách xử lý**:
+
+**Bước 1: Bình tĩnh**
+> "Vâng ạ, em xin phép làm ngay."
+
+**Bước 2: Tìm vị trí code**
+```
+Ctrl + P → index.ejs
+Ctrl + F → popupContent
+```
+
+**Bước 3: Thêm button** (ví dụ dòng 1275)
+
+Tìm đoạn:
+```html
+<div class="d-flex gap-2 flex-wrap">
+  <button class="btn btn-sm btn-outline-primary" onclick="showDirections(...)">
+    <i class="bi bi-route"></i> Chỉ đường
+  </button>
+  ...
+</div>
+```
+
+Thêm vào:
+```html
+<button class="btn btn-sm btn-outline-success" 
+        onclick="window.open('https://www.google.com/maps?q=${coords[1]},${coords[0]}', '_blank')">
+  <i class="bi bi-google"></i> Google Maps
+</button>
+```
+
+**Bước 4: Lưu và test**
+```
+Ctrl + S
+F5 (reload browser)
+Click vào thư viện → Thấy button mới
+```
+
+**Bước 5: Giải thích**
+> "Em vừa thêm button 'Google Maps'. Khi click, nó sẽ mở Google Maps với tọa độ `${coords[1]},${coords[0]}` (latitude, longitude). Hàm `window.open` mở tab mới với URL Google Maps."
+
+---
+
+## 📝 THÊM VÍ DỤ CỤ THỂ
+
+### **Ví dụ 1: Giải thích luồng duyệt mượn sách (Chi tiết từng dòng)**
+
+**File**: [routes/muonSach.js](file:///c:/Users/ZENBOOK/Desktop/%C4%90%E1%BB%92%20%C3%81N%20CHUY%C3%8AN%20NGH%C3%80NH/new%20thuvien2/routes/muonSach.js), dòng 225-279
+
+```javascript
+router.post('/approve/:id', async (req, res) => {
+  const { id } = req.params; // Dòng 226: Lấy ID từ URL
+  
+  try {
+    // Dòng 231-234: Kiểm tra yêu cầu có tồn tại không
+    const muonSach = await pool.query(
+      'SELECT id_sach, trang_thai FROM muon_sach WHERE id_muonsach = $1',
+      [id]
+    );
+    
+    // Dòng 236-240: Nếu không tìm thấy → Trả về lỗi 404
+    if (muonSach.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Không tìm thấy yêu cầu mượn sách' 
+      });
+    }
+
+    // Dòng 244-250: Kiểm tra đã duyệt chưa (tránh duyệt 2 lần)
+    const currentStatus = muonSach.rows[0].trang_thai;
+    if (currentStatus === 'Đã duyệt') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Yêu cầu này đã được duyệt rồi' 
+      });
+    }
+
+    // Dòng 253-256: Cập nhật trạng thái thành "Đã duyệt"
+    await pool.query(
+      'UPDATE muon_sach SET trang_thai = $1 WHERE id_muonsach = $2',
+      ['Đã duyệt', id]
+    );
+
+    // Dòng 261-265: Trả về JSON (nếu là AJAX request)
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      return res.json({ 
+        success: true, 
+        message: 'Đã duyệt yêu cầu mượn sách thành công!' 
+      });
+    }
+    
+    // Dòng 268: Redirect (nếu là form submit)
+    res.redirect('/admin/muon_sach?success=Duyệt thành công');
+  } catch (error) {
+    // Dòng 270-277: Xử lý lỗi
+    console.error('❌ Lỗi khi duyệt yêu cầu mượn sách:', error);
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Lỗi server: ' + error.message 
+      });
+    }
+    res.status(500).send('Lỗi server');
+  }
+});
+```
+
+**Giải thích cho thầy cô**:
+> "Thưa thầy/cô, luồng duyệt gồm 5 bước:
+> 1. **Lấy ID** từ URL params (dòng 226)
+> 2. **Kiểm tra tồn tại**: Query database xem yêu cầu có tồn tại không (dòng 231)
+> 3. **Kiểm tra trạng thái**: Tránh duyệt 2 lần (dòng 244)
+> 4. **Cập nhật**: Đổi trạng thái thành 'Đã duyệt' (dòng 253)
+> 5. **Trả về kết quả**: JSON (AJAX) hoặc redirect (form) (dòng 261-268)
+> 
+> Em xử lý cả 2 loại request (AJAX và form submit) để linh hoạt."
+
+---
+
+### **Ví dụ 2: So sánh 2 cách tìm kiếm**
+
+#### **Cách 1: Tìm kiếm đơn giản (hiện tại)**
+
+```javascript
+function searchLibraries(libraries, query) {
+  const searchTerm = query.toLowerCase();
+  return libraries.filter((library) => {
+    const name = library.properties.TenThuVien?.toLowerCase() || "";
+    return name.includes(searchTerm);
+  });
+}
+```
+
+**Ưu điểm**: Đơn giản, nhanh  
+**Nhược điểm**: Chỉ tìm chính xác, không xử lý typo
+
+---
+
+#### **Cách 2: Tìm kiếm nâng cao (nếu thầy cô hỏi)**
+
+```javascript
+function searchLibrariesAdvanced(libraries, query) {
+  const searchTerm = query.toLowerCase();
+  return libraries.filter((library) => {
+    const name = library.properties.TenThuVien?.toLowerCase() || "";
+    const address = library.properties.DiaChi?.toLowerCase() || "";
+    const type = library.properties.phanloai?.toLowerCase() || "";
+    
+    // Tìm trong tên, địa chỉ, phân loại
+    return (
+      name.includes(searchTerm) ||
+      address.includes(searchTerm) ||
+      type.includes(searchTerm)
+    );
+  });
+}
+```
+
+**Ưu điểm**: Tìm nhiều trường  
+**Nhược điểm**: Vẫn chưa xử lý typo
+
+---
+
+#### **Cách 3: Fuzzy search (nếu muốn show off)**
+
+```javascript
+// Cần thêm thư viện: npm install fuse.js
+import Fuse from 'fuse.js';
+
+function searchLibrariesFuzzy(libraries, query) {
+  const fuse = new Fuse(libraries, {
+    keys: ['properties.TenThuVien', 'properties.DiaChi'],
+    threshold: 0.3 // Độ tương đồng
+  });
+  
+  return fuse.search(query).map(result => result.item);
+}
+```
+
+**Ưu điểm**: Xử lý typo, tìm gần đúng  
+**Nhược điểm**: Phức tạp hơn, cần thư viện
+
+**Nếu thầy cô hỏi**:
+> "Em dùng cách 2 (tìm nhiều trường) vì cân bằng giữa đơn giản và hiệu quả. Nếu cần xử lý typo, em có thể dùng Fuse.js (fuzzy search)."
+
+---
+
+## 🎬 KỊCH BẢN DEMO HOÀN CHỈNH (Từng bước cụ thể)
+
+### **Demo: Tìm kiếm thư viện + Tính khoảng cách**
+
+**Chuẩn bị**:
+- Server đang chạy: `npm start`
+- Browser mở: `http://localhost:3001`
+- VS Code mở sẵn [index.ejs](file:///c:/Users/ZENBOOK/Desktop/%C4%90%E1%BB%92%20%C3%81N%20CHUY%C3%8AN%20NGH%C3%80NH/new%20thuvien2/views/index.ejs)
+
+**Script**:
+
+```
+THẦY/CÔ: "Em demo tính năng tìm kiếm thư viện đi"
+
+BẠN: "Vâng ạ, em xin phép demo ngay."
+
+[Bước 1: Mở browser]
+BẠN: "Đây là trang chủ với bản đồ hiển thị tất cả thư viện."
+
+[Bước 2: Gõ vào ô tìm kiếm]
+BẠN: "Em sẽ tìm thư viện có tên 'Quốc gia'"
+[Gõ: "Quốc gia"]
+
+[Bước 3: Click "Tìm kiếm"]
+BẠN: "Khi click tìm kiếm, hệ thống gọi hàm searchLibraries..."
+[Click button]
+
+[Bước 4: Giải thích kết quả]
+BẠN: "Hệ thống tìm thấy 1 thư viện. Bản đồ đã zoom vào vị trí thư viện đó."
+
+[Bước 5: Mở code]
+BẠN: "Em xin phép mở code để giải thích."
+[Ctrl + P → index.ejs]
+[Ctrl + F → searchLibraries]
+
+[Bước 6: Giải thích code]
+BẠN: "Đây là hàm searchLibraries ở dòng 1612. 
+      Hàm này nhận vào danh sách thư viện và từ khóa tìm kiếm.
+      Em dùng filter() để lọc các thư viện có tên chứa từ khóa.
+      Kết quả trả về là mảng các thư viện phù hợp."
+
+[Bước 7: Demo tính khoảng cách]
+BẠN: "Tiếp theo, em demo tính khoảng cách."
+[Click "Vị trí của tôi" → Cho phép truy cập]
+[Click "Tìm thư viện gần tôi"]
+
+[Bước 8: Giải thích]
+BẠN: "Hệ thống lấy vị trí hiện tại bằng Geolocation API,
+      sau đó tính khoảng cách đến từng thư viện bằng công thức Haversine.
+      Kết quả được sắp xếp theo khoảng cách tăng dần."
+
+[Bước 9: Mở code Haversine]
+[Ctrl + G → 2161]
+BẠN: "Đây là hàm calculateDistance dùng công thức Haversine.
+      Em đã giải thích chi tiết ở phần trước ạ."
+
+THẦY/CÔ: "Tốt, em làm được."
+```
+
+---
+
+## 💡 MẸO XỬ LÝ CÂU HỎI BẤT NGỜ
+
+### **Mẹo 1: Mua thời gian**
+
+Nếu không biết ngay:
+> "Thưa thầy/cô, em xin phép suy nghĩ một chút ạ."
+> [Thở sâu, suy nghĩ 5-10 giây]
+> "Em nghĩ là..."
+
+---
+
+### **Mẹo 2: Tìm code nhanh**
+
+Nếu quên vị trí code:
+> "Thưa thầy/cô, em xin phép tìm lại code một chút."
+> [Ctrl + Shift + F → Tìm từ khóa]
+
+---
+
+### **Mẹo 3: Thừa nhận không biết (nhưng có hướng giải quyết)**
+
+Nếu thực sự không biết:
+> "Thưa thầy/cô, em chưa nghiên cứu sâu về vấn đề này. 
+> Nhưng em nghĩ có thể giải quyết bằng cách [đưa ra ý tưởng].
+> Em sẽ tìm hiểu thêm sau buổi bảo vệ ạ."
+
+---
+
+### **Mẹo 4: Chuyển hướng sang điểm mạnh**
+
+Nếu câu hỏi về điểm yếu:
+> "Thưa thầy/cô, phần này em làm cơ bản. 
+> Tuy nhiên, em tập trung nhiều hơn vào [điểm mạnh].
+> Em xin phép demo phần [điểm mạnh] để thầy/cô thấy rõ hơn ạ."
+
+---
+
+## ✅ CHECKLIST CUỐI CÙNG
+
+- [ ] Đọc tài liệu này 2 lần
+- [ ] Thực hành demo 5 lần
+- [ ] Kiểm tra tất cả vị trí code đã xác nhận
+- [ ] Chuẩn bị câu trả lời cho 5 tình huống khó
+- [ ] Test tất cả tính năng trước buổi bảo vệ
+
+---
+
+**Chúc bạn bảo vệ xuất sắc! 🎓🌟**

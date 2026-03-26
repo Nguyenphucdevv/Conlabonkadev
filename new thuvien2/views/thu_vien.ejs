@@ -110,115 +110,113 @@
           return;
         }
 
-        const booksModal = new bootstrap.Modal(booksModalEl);
-
-        // Đợi modal hiển thị hoàn toàn trước khi load dữ liệu
-        booksModalEl.addEventListener(
-          "shown.bs.modal",
-          async function onModalShown() {
-            booksModalEl.removeEventListener("shown.bs.modal", onModalShown);
-
-            console.log("✅ Modal đã hiển thị, bắt đầu load sách...");
-
-            // Đợi một chút để đảm bảo tất cả các script đã được load
-            await new Promise((resolve) => setTimeout(resolve, 50));
-
-            // Kiểm tra và đợi hàm loadLibraryBooks được định nghĩa đầy đủ (tối đa 1 giây)
-            let attempts = 0;
-            const maxAttempts = 20; // 20 lần * 50ms = 1 giây
-            while (typeof window.loadLibraryBooks !== "function") {
-              if (attempts >= maxAttempts) {
-                console.error(
-                  "❌ loadLibraryBooks chưa được định nghĩa sau khi đợi"
-                );
-                const content = document.getElementById("booksContent");
-                if (content) {
-                  content.innerHTML = `
-                    <div class="alert alert-danger">
-                      <i class="bi bi-exclamation-triangle me-2"></i>
-                      <strong>Lỗi:</strong> Hàm loadLibraryBooks chưa được định nghĩa. Vui lòng tải lại trang.
-                    </div>
-                  `;
-                }
-                return;
-              }
-              await new Promise((resolve) => setTimeout(resolve, 50));
-              attempts++;
-            }
-
-            // Kiểm tra xem hàm đã được override (không còn là stub)
-            attempts = 0;
-            let fnStr = window.loadLibraryBooks.toString();
-            while (
-              fnStr.includes("stub") &&
-              !fnStr.includes("booksContent") &&
-              attempts < maxAttempts
-            ) {
-              console.log(
-                "⏳ Hàm loadLibraryBooks vẫn là stub, đang đợi hàm đầy đủ..."
-              );
-              await new Promise((resolve) => setTimeout(resolve, 50));
-              attempts++;
-              fnStr = window.loadLibraryBooks.toString();
-            }
-
-            if (fnStr.includes("stub") && !fnStr.includes("booksContent")) {
-              console.error("❌ loadLibraryBooks vẫn là stub sau khi đợi");
-              const content = document.getElementById("booksContent");
-              if (content) {
-                content.innerHTML = `
-                  <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Lỗi:</strong> Hàm loadLibraryBooks chưa được định nghĩa đầy đủ. Vui lòng tải lại trang.
-                  </div>
-                `;
-              }
-              return;
-            }
-
-            console.log(
-              "✅ Hàm loadLibraryBooks đã sẵn sàng, bắt đầu load dữ liệu..."
-            );
-
-            try {
-              await window.loadLibraryBooks(id);
-            } catch (error) {
-              console.error("❌ Lỗi khi load sách:", error);
-              const content = document.getElementById("booksContent");
-              if (content) {
-                content.innerHTML = `
-                  <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Lỗi:</strong> ${error.message}
-                  </div>
-                `;
-              }
-            }
-          },
-          { once: true }
-        );
-
-        booksModal.show();
-      };
-
-      // Hàm load sách thư viện - Stub function để tránh lỗi khi onclick được parse
-      // Hàm đầy đủ sẽ được định nghĩa trong script tag sau modal
-      window.loadLibraryBooks = async function (libraryId) {
-        console.log(
-          "📚 loadLibraryBooks stub được gọi - đang đợi hàm đầy đủ..."
-        );
-        const content = document.getElementById("booksContent");
-        if (content) {
-          content.innerHTML = `
+        // Hiện loading ngay
+        const contentEl = document.getElementById("booksContent");
+        if (contentEl) {
+          contentEl.innerHTML = `
             <div class="text-center py-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Đang tải...</span>
-              </div>
+              <div class="spinner-border text-primary" role="status"></div>
               <p class="mt-3 text-muted">Đang tải sách thư viện...</p>
             </div>
           `;
         }
-        // Hàm đầy đủ sẽ override hàm này trong script tag sau modal
+
+        const booksModal = new bootstrap.Modal(booksModalEl);
+        booksModal.show();
+
+        // Load dữ liệu ngay sau khi show
+        try {
+          await window.loadLibraryBooks(id);
+        } catch (error) {
+          console.error("❌ Lỗi khi load sách:", error);
+          if (contentEl) {
+            contentEl.innerHTML = `
+              <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Lỗi:</strong> ${error.message}
+              </div>
+            `;
+          }
+        }
+      };
+
+      // Hàm load sách thư viện - Gọi API backend và render bảng sách trong modal
+      window.loadLibraryBooks = async function (libraryId) {
+        console.log("📚 loadLibraryBooks - libraryId:", libraryId);
+        const content = document.getElementById("booksContent");
+        if (!content) return;
+
+        try {
+          const response = await fetch("/admin/thu_vien/books/" + libraryId);
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Lỗi khi tải dữ liệu sách");
+          }
+
+          const books = data.books || [];
+
+          if (books.length === 0) {
+            content.innerHTML = `
+              <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle me-2"></i>
+                Thư viện này chưa có sách nào. Hãy dùng nút <strong>Thêm sách vào thư viện</strong> để thêm!
+              </div>
+            `;
+            return;
+          }
+
+          let rows = "";
+          books.forEach((book, i) => {
+            const ngayThem = book.ngay_them
+              ? new Date(book.ngay_them).toLocaleDateString("vi-VN")
+              : "—";
+            const slTrong = book.so_luong_trong_thu_vien ?? "—";
+            const slTon = book.slton ?? 0;
+            const slClass = slTon === 0
+              ? "text-danger fw-bold"
+              : slTon <= 5 ? "text-warning fw-bold" : "text-success fw-bold";
+            rows += `
+              <tr>
+                <td>${i + 1}</td>
+                <td><strong>${book.ten_sach || "—"}</strong></td>
+                <td>${book.tac_gia || "—"}</td>
+                <td><span class="badge bg-secondary">${book.ten_theloai || "—"}</span></td>
+                <td>${book.nam_xuat_ban || "—"}</td>
+                <td><span class="badge bg-primary">${slTrong}</span></td>
+                <td><span class="${slClass}">${slTon}</span></td>
+                <td><small class="text-muted">${ngayThem}</small></td>
+              </tr>`;
+          });
+
+          content.innerHTML = `
+            <div class="mb-3">
+              <span class="badge bg-success fs-6">
+                <i class="bi bi-check-circle me-1"></i>
+                Tổng: ${books.length} cuốn sách
+              </span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover table-striped align-middle">
+                <thead class="table-dark">
+                  <tr>
+                    <th>#</th><th>Tên sách</th><th>Tác giả</th>
+                    <th>Thể loại</th><th>Năm XB</th>
+                    <th>SL trong TV</th><th>SL tồn kho</th><th>Ngày thêm</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>`;
+
+        } catch (error) {
+          console.error("❌ Lỗi khi load sách thư viện:", error);
+          content.innerHTML = `
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <strong>Lỗi:</strong> ${error.message}
+            </div>`;
+        }
       };
 
       // Hàm mở modal sửa thư viện
@@ -429,7 +427,7 @@
 
     <main class="container py-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2><i class="bi bi-building"></i> Quản lý Thư viện</h2>
+        <h2> <i class="bi bi-building"></i> Quản lý Thư viện</h2>
         <div>
           <button
             class="btn btn-success me-2"

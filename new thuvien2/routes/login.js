@@ -61,6 +61,9 @@ router.post('/', async (req, res) => {
                 if (user.id_vaitro == 1) {
                     console.log('✅ User là admin, chuyển hướng đến /admin');
                     res.redirect('/admin');
+                } else if (user.id_vaitro == 2) {
+                    console.log('🏪 User là chủ quán, chuyển hướng đến /chu-quan');
+                    res.redirect('/chu-quan');
                 } else {
                     console.log('👤 User là người dùng thường, chuyển hướng đến /');
                     res.redirect('/');
