@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi Tiết Đơn Hàng #<%= donHang.id_don_hang %></title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+      }
+
+      .info-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+      }
+
+      .info-card h5 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .info-row:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        font-weight: 600;
+        color: #2d3748;
+      }
+
+      .info-value {
+        color: #718096;
+      }
+
+      .timeline {
+        position: relative;
+        padding-left: 2rem;
+      }
+
+      .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+      }
+
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -1.5rem;
+        top: 0.5rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--primary-color);
+      }
+
+      .timeline-item::after {
+        content: "";
+        position: absolute;
+        left: -1.4rem;
+        top: 1.2rem;
+        width: 2px;
+        height: calc(100% - 1rem);
+        background: #e2e8f0;
+      }
+
+      .timeline-item:last-child::after {
+        display: none;
+      }
+
+      .product-item {
+        background: #f7fafc;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+      }
+
+      .badge-custom {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+          <a class="navbar-brand" href="/admin/don_hang">
+            <i class="bi bi-arrow-left"></i> Quay lại
+          </a>
+          <span class="navbar-text text-white">
+            Chi Tiết Đơn Hàng #<%= donHang.id_don_hang %>
+          </span>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container py-4">
+      <div class="row">
+        <!-- Thông tin đơn hàng -->
+        <div class="col-lg-8">
+          <!-- Thông tin khách hàng -->
+          <div class="info-card">
+            <h5><i class="bi bi-person-circle"></i> Thông Tin Khách Hàng</h5>
+            <div class="info-row">
+              <span class="info-label">Họ và tên:</span>
+              <span class="info-value"><%= donHang.ten_khach_hang %></span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Số điện thoại:</span>
+              <span class="info-value">
+                <a href="tel:<%= donHang.so_dien_thoai %>"
+                  ><%= donHang.so_dien_thoai %></a
+                >
+              </span>
+            </div>
+            <% if (donHang.email) { %>
+            <div class="info-row">
+              <span class="info-label">Email:</span>
+              <span class="info-value">
+                <a href="mailto:<%= donHang.email %>"><%= donHang.email %></a>
+              </span>
+            </div>
+            <% } %>
+            <div class="info-row">
+              <span class="info-label">Địa chỉ giao hàng:</span>
+              <span class="info-value"><%= donHang.dia_chi %></span>
+            </div>
+            <% if (donHang.ghi_chu_khach) { %>
+            <div class="info-row">
+              <span class="info-label">Ghi chú:</span>
+              <span class="info-value"><%= donHang.ghi_chu_khach %></span>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Chi tiết sản phẩm -->
+          <div class="info-card">
+            <h5><i class="bi bi-box-seam"></i> Chi Tiết Sản Phẩm</h5>
+            <% chiTiet.forEach(ct => { %>
+            <div class="product-item">
+              <div class="row align-items-center">
+                <div class="col-md-6">
+                  <h6 class="mb-1"><%= ct.ten_sach %></h6>
+                  <small class="text-muted">
+                    <% if (ct.tac_gia) { %> Tác giả: <%= ct.tac_gia %><br />
+                    <% } %> <% if (ct.nam_xuat_ban) { %> Năm XB: <%=
+                    ct.nam_xuat_ban %> <% } %>
+                  </small>
+                </div>
+                <div class="col-md-3 text-center">
+                  <small class="text-muted">Số lượng</small><br />
+                  <strong><%= ct.so_luong %> quyển</strong>
+                </div>
+                <div class="col-md-3 text-end">
+                  <small class="text-muted">Đơn giá</small><br />
+                  <strong class="text-primary">
+                    <%= new Intl.NumberFormat('vi-VN', { style: 'currency',
+                    currency: 'VND' }).format(ct.don_gia) %>
+                  </strong>
+                  <br />
+                  <small class="text-muted">
+                    Thành tiền: <%= new Intl.NumberFormat('vi-VN', { style:
+                    'currency', currency: 'VND' }).format(ct.thanh_tien) %>
+                  </small>
+                </div>
+              </div>
+            </div>
+            <% }) %>
+
+            <div class="row mt-3">
+              <div class="col-md-6 offset-md-6">
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Tổng cộng:</span>
+                  <strong>
+                    <%= new Intl.NumberFormat('vi-VN', { style: 'currency',
+                    currency: 'VND' }).format(donHang.tong_tien) %>
+                  </strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Phí ship:</span>
+                  <span class="text-success">Miễn phí</span>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between">
+                  <strong>Tổng thanh toán:</strong>
+                  <strong class="text-primary fs-5">
+                    <%= new Intl.NumberFormat('vi-VN', { style: 'currency',
+                    currency: 'VND' }).format(donHang.tong_tien) %>
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lịch sử đơn hàng -->
+          <% if (lichSu && lichSu.length > 0) { %>
+          <div class="info-card">
+            <h5><i class="bi bi-clock-history"></i> Lịch Sử Đơn Hàng</h5>
+            <div class="timeline">
+              <% lichSu.forEach(ls => { %>
+              <div class="timeline-item">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <strong>
+                      <% if (ls.trang_thai_cu) { %> <%= ls.trang_thai_cu %> → <%
+                      } %> <%= ls.trang_thai_moi %>
+                    </strong>
+                    <% if (ls.ghi_chu) { %>
+                    <p class="mb-0 text-muted small"><%= ls.ghi_chu %></p>
+                    <% } %> <% if (ls.nguoi_thuc_hien) { %>
+                    <small class="text-muted"
+                      >Bởi: <%= ls.nguoi_thuc_hien %></small
+                    >
+                    <% } %>
+                  </div>
+                  <small class="text-muted">
+                    <%= new Date(ls.ngay_thay_doi).toLocaleString('vi-VN') %>
+                  </small>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+          <!-- Trạng thái đơn hàng -->
+          <div class="info-card">
+            <h5><i class="bi bi-info-circle"></i> Thông Tin Đơn Hàng</h5>
+            <div class="info-row">
+              <span class="info-label">Mã đơn hàng:</span>
+              <span class="info-value"
+                ><strong>#<%= donHang.id_don_hang %></strong></span
+              >
+            </div>
+            <div class="info-row">
+              <span class="info-label">Trạng thái:</span>
+              <span>
+                <span class="badge badge-custom bg-primary"
+                  ><%= donHang.trang_thai %></span
+                >
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Ngày đặt:</span>
+              <span class="info-value">
+                <%= new Date(donHang.ngay_dat).toLocaleString('vi-VN') %>
+              </span>
+            </div>
+            <% if (donHang.ngay_giao_du_kien) { %>
+            <div class="info-row">
+              <span class="info-label">Dự kiến giao:</span>
+              <span class="info-value">
+                <%= new
+                Date(donHang.ngay_giao_du_kien).toLocaleDateString('vi-VN') %>
+              </span>
+            </div>
+            <% } %> <% if (donHang.ngay_hoan_thanh) { %>
+            <div class="info-row">
+              <span class="info-label">Ngày hoàn thành:</span>
+              <span class="info-value">
+                <%= new Date(donHang.ngay_hoan_thanh).toLocaleString('vi-VN') %>
+              </span>
+            </div>
+            <% } %>
+            <div class="info-row">
+              <span class="info-label">Thanh toán:</span>
+              <span class="info-value"
+                ><%= donHang.phuong_thuc_thanh_toan %></span
+              >
+            </div>
+            <% if (donHang.ly_do_huy) { %>
+            <div class="info-row">
+              <span class="info-label">Lý do hủy:</span>
+              <span class="info-value text-danger"
+                ><%= donHang.ly_do_huy %></span
+              >
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Ảnh minh chứng thanh toán -->
+          <% if (donHang.payment_proof_image) { %>
+          <div class="info-card">
+            <h5><i class="bi bi-image me-2"></i>Ảnh Minh Chứng Chuyển Khoản</h5>
+            <div class="text-center">
+              <img 
+                src="<%= donHang.payment_proof_image %>" 
+                alt="Ảnh minh chứng chuyển khoản" 
+                class="img-fluid border rounded shadow-sm"
+                style="max-height: 400px; cursor: pointer;"
+                onclick="window.open(this.src, '_blank')"
+              >
+              <p class="mt-3 mb-0 small text-muted">
+                <i class="bi bi-info-circle me-1"></i>Nhấn vào ảnh để xem kích thước đầy đủ
+              </p>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- Actions -->
+          <div class="info-card">
+            <h5><i class="bi bi-gear"></i> Hành Động</h5>
+            <div class="d-grid gap-2">
+              <% if (typeof donHang !== 'undefined' && donHang) { %>
+              <button
+                class="btn btn-primary btn-update-order"
+                data-order-id="<%= donHang.id_don_hang || 0 %>"
+                data-order-status="<%= donHang.trang_thai || 'Chờ xác nhận' %>"
+              >
+                <i class="bi bi-pencil"></i> Cập Nhật Trạng Thái
+              </button>
+              <% } else { %>
+              <button class="btn btn-primary" disabled>
+                <i class="bi bi-exclamation-triangle"></i> Không tìm thấy Đơn
+                Hàng
+              </button>
+              <% } %>
+
+              <button class="btn btn-info" onclick="window.print()">
+                <i class="bi bi-printer"></i> In Đơn Hàng
+              </button>
+
+              <a href="/admin/don_hang" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay Lại Danh Sách
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal cập nhật trạng thái -->
+    <div class="modal fade" id="updateModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form id="update-form" method="POST">
+            <div class="modal-header">
+              <h5 class="modal-title">Cập Nhật Trạng Thái</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <!-- Hiển thị ảnh minh chứng nếu có -->
+              <% if (donHang.payment_proof_image) { %>
+              <div class="alert alert-info">
+                <h6 class="alert-heading">
+                  <i class="bi bi-image me-2"></i>Ảnh Minh Chứng Chuyển Khoản
+                </h6>
+                <div class="text-center mt-3">
+                  <img src="<%= donHang.payment_proof_image %>" alt="Ảnh minh chứng" 
+                       class="img-fluid border rounded" style="max-height: 300px; cursor: pointer;"
+                       onclick="window.open(this.src, '_blank')">
+                  <p class="mb-0 mt-2 small text-muted">
+                    <i class="bi bi-info-circle me-1"></i>Nhấn vào ảnh để xem kích thước đầy đủ
+                  </p>
+                </div>
+              </div>
+              <% } %>
+
+              <div class="mb-3">
+                <label class="form-label">Trạng thái mới</label>
+                <select name="trang_thai" class="form-select" required>
+                  <option value="Chờ xác nhận">Chờ xác nhận</option>
+                  <option value="Chờ thanh toán">Chờ thanh toán</option>
+                  <option value="Đã xác nhận">Đã xác nhận</option>
+                  <option value="Đang chuẩn bị">Đang chuẩn bị</option>
+                  <option value="Đang giao hàng">Đang giao hàng</option>
+                  <option value="Đã giao">Đã giao</option>
+                  <option value="Đã hủy">Đã hủy</option>
+                </select>
+              </div>
+              <div class="mb-3" id="cancel-reason-group" style="display: none">
+                <label class="form-label">Lý do hủy</label>
+                <textarea
+                  name="ly_do_huy"
+                  class="form-control"
+                  rows="2"
+                  placeholder="Nhập lý do hủy đơn hàng..."
+                ></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Ghi chú</label>
+                <textarea
+                  name="ghi_chu"
+                  class="form-control"
+                  rows="2"
+                  placeholder="Ghi chú thêm..."
+                ></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button type="submit" class="btn btn-primary">Cập nhật</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function showUpdateModal(orderId, currentStatus) {
+        const modal = new bootstrap.Modal(
+          document.getElementById("updateModal")
+        );
+        const form = document.getElementById("update-form");
+        const statusSelect = form.querySelector('select[name="trang_thai"]');
+        const cancelReasonGroup = document.getElementById(
+          "cancel-reason-group"
+        );
+
+        form.action = `/admin/don_hang/update-status/${orderId}`;
+        statusSelect.value = currentStatus;
+
+        statusSelect.addEventListener("change", function () {
+          if (this.value === "Đã hủy") {
+            cancelReasonGroup.style.display = "block";
+          } else {
+            cancelReasonGroup.style.display = "none";
+          }
+        });
+
+        if (currentStatus === "Đã hủy") {
+          cancelReasonGroup.style.display = "block";
+        }
+
+        modal.show();
+      }
+
+      // Gắn sự kiện cho nút cập nhật
+      document.addEventListener("DOMContentLoaded", function () {
+        const updateBtn = document.querySelector(".btn-update-order");
+        if (updateBtn) {
+          updateBtn.addEventListener("click", function () {
+            const orderId = this.dataset.orderId;
+            const orderStatus = this.dataset.orderStatus;
+            showUpdateModal(orderId, orderStatus);
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

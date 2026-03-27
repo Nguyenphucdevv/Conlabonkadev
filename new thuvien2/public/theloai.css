@@ -1,0 +1,77 @@
+/* Reset nhẹ nhàng, tránh xung đột với Bootstrap */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.6;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #333;
+  padding: 0; /* container sẽ đảm nhiệm padding */
+}
+
+/* Navbar nâng nhẹ độ đổ bóng */
+.navbar {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Card tinh tế hơn */
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Form controls: giữ nguyên Bootstrap, chỉ thêm transition */
+.form-control,
+.form-select,
+.btn {
+  transition: all 0.2s ease;
+}
+
+/* Switch đẹp hơn một chút */
+.form-check-input:checked {
+  background-color: #4b3f72;
+  border-color: #4b3f72;
+}
+
+/* Table tinh chỉnh khoảng cách và hover */
+.table > :not(caption) > * > * {
+  padding: 0.9rem 0.75rem;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(164, 145, 255, 0.08);
+}
+
+/* Nút hành động trong bảng */
+.table .btn {
+  border-radius: 20px;
+}
+
+/* Alert spacing */
+.alert {
+  border-radius: 10px;
+}
+/* Tùy chỉnh viền cho phần Thêm thể loại mới theo yêu cầu */
+.add-category-card {
+  border: 2px solid #0d6efd !important; /* Viền màu xanh Primary dày 2px */
+  border-left: 8px solid #0d6efd !important; /* Viền trái dày hơn để làm nổi bật */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.add-category-card:hover {
+  box-shadow: 0 10px 20px rgba(13, 110, 253, 0.15) !important;
+}
+
+.add-category-card .card-header {
+  border-bottom: 2px solid #0d6efd !important;
+  color: #0d6efd;
+  font-weight: bold;
+}

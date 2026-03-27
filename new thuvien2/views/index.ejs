@@ -1,0 +1,3476 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bản đồ Thư viện - Hệ thống Quản lý</title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <!-- Pannellum CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
+    />
+    <!-- Custom CSS -->
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/map.css" />
+    <style>
+      /* CSS cho panel chỉ đường */
+      .route-info {
+        position: fixed !important;
+        top: 120px !important;
+        left: 20px !important;
+        right: auto !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        padding: 20px !important;
+        border-radius: 15px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        z-index: 1000 !important;
+        max-width: 350px !important;
+        min-width: 320px !important;
+        font-family: 'Inter', sans-serif !important;
+        border: none !important;
+        backdrop-filter: blur(10px) !important;
+        animation: slideInLeft 0.5s ease-out !important;
+      }
+
+      @keyframes slideInLeft {
+        from {
+          transform: translateX(-100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideOutLeft {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(-100%);
+          opacity: 0;
+        }
+      }
+
+      .route-info h6 {
+        color: white !important;
+        margin-bottom: 15px !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        display: flex !important;
+        align-items: center !important;
+        border-bottom: 2px solid rgba(255,255,255,0.3) !important;
+        padding-bottom: 10px !important;
+      }
+
+      .route-info h6 i {
+        margin-right: 8px !important;
+        font-size: 20px !important;
+      }
+
+      .route-info .info-item {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 12px !important;
+        padding: 8px 12px !important;
+        background: rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+      }
+
+      .route-info .info-item:hover {
+        background: rgba(255,255,255,0.2) !important;
+        transform: translateX(5px) !important;
+      }
+
+      .route-info .info-item .label {
+        font-weight: 500 !important;
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+
+      .route-info .info-item .label i {
+        margin-right: 6px !important;
+        font-size: 16px !important;
+      }
+
+      .route-info .info-item .value {
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        color: #ffd700 !important;
+      }
+
+      .route-info .time-estimates {
+        background: rgba(255,255,255,0.15) !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        margin: 10px 0 !important;
+      }
+
+      .route-info .time-estimates h7 {
+        color: #ffd700 !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        display: block !important;
+        margin-bottom: 8px !important;
+      }
+
+      .route-info .time-item {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 6px !important;
+        padding: 4px 0 !important;
+      }
+
+      .route-info .time-item:last-child {
+        margin-bottom: 0 !important;
+      }
+
+      .route-info .time-item .transport-icon {
+        width: 20px !important;
+        height: 20px !important;
+        margin-right: 8px !important;
+        display: inline-block !important;
+      }
+
+      .route-info .time-item .transport-text {
+        flex: 1 !important;
+        font-size: 13px !important;
+      }
+
+      .route-info .time-item .time-value {
+        font-weight: 600 !important;
+        color: #ffd700 !important;
+        font-size: 13px !important;
+      }
+
+      .route-info .action-buttons {
+        display: flex !important;
+        gap: 8px !important;
+        margin-top: 15px !important;
+      }
+
+      .route-info .btn {
+        flex: 1 !important;
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
+        border: none !important;
+      }
+
+      .route-info .btn-outline-danger {
+        background: rgba(220, 53, 69, 0.2) !important;
+        color: #ff6b6b !important;
+        border: 1px solid #ff6b6b !important;
+      }
+
+      .route-info .btn-outline-danger:hover {
+        background: #ff6b6b !important;
+        color: white !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4) !important;
+      }
+
+      .route-info .btn-outline-primary {
+        background: rgba(0, 123, 255, 0.2) !important;
+        color: #74c0fc !important;
+        border: 1px solid #74c0fc !important;
+      }
+
+      .route-info .btn-outline-primary:hover {
+        background: #74c0fc !important;
+        color: white !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(116, 192, 252, 0.4) !important;
+      }
+
+      /* Responsive cho mobile */
+      @media (max-width: 768px) {
+        .route-info {
+          left: 10px !important;
+          right: 10px !important;
+          max-width: none !important;
+          min-width: auto !important;
+          top: 100px !important;
+        }
+      }
+
+      /* Hiệu ứng hover cho toàn bộ panel */
+      .route-info:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.4) !important;
+      }
+    </style>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/">
+          <i class="bi bi-geo-alt-fill me-2"></i>
+          Bản đồ Thư viện <% if (user) { %>
+          <small class="d-none d-md-inline ms-2">
+            (<%= user.id_vaitro == 1 ? 'Admin' : (user.tai_khoan || 'Người dùng') %>)
+          </small>
+          <% } %>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link fw-bold text-warning" href="/shop">
+                <i class="bi bi-cart3 me-1"></i>Cửa Hàng Sách
+              </a>
+            </li>
+            <% if (user && user.role === 'admin') { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/thu_vien">
+                <i class="bi bi-building me-1"></i>Quản lý Thư viện
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin">
+                <i class="bi bi-gear me-1"></i>Admin Panel
+              </a>
+            </li>
+            <% } %>
+            <li class="nav-item">
+              <span class="nav-link">
+                <i class="bi bi-person me-1"></i>Xin chào, <%= user ?
+                user.username : 'Khách' %>
+              </span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">
+                <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Welcome Message for Users -->
+    <% if (user) { %>
+    <div class="container-fluid mt-3">
+      <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-12">
+          <div class="alert alert-info text-center border-0 shadow-sm">
+            <i class="bi bi-person-circle me-2"></i>
+            <strong>Xin chào, <%= user.username %>!</strong>
+            <% if (user.role === 'admin') { %> Bạn có quyền truy cập đầy đủ vào
+            hệ thống quản lý. <% } else { %> Bạn có thể xem bản đồ thư viện và
+            mượn sách.
+            <strong>Lưu ý:</strong> Chỉ admin mới có thể truy cập trang quản lý.
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Search Bar Bootstrap -->
+    <div class="search-container">
+      <div class="container-fluid">
+        <div class="row justify-content-center">
+          <div class="col-lg-8 col-md-10 col-12">
+            <div class="search-card shadow-lg">
+              <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-0">
+                      <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input
+                      type="text"
+                      id="main-search"
+                      class="form-control border-0 shadow-none"
+                      placeholder="Nhập tên thư viện..."
+                    />
+                  </div>
+                </div>
+                <div class="col-md-8">
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button id="filter-button" class="btn btn-outline-primary">
+                      <i class="bi bi-funnel me-1"></i>Bộ lọc
+                    </button>
+                    <button
+                      id="nearest-library-button"
+                      class="btn btn-outline-success"
+                    >
+                      <i class="bi bi-geo-alt me-1"></i>Thư viện gần nhất
+                    </button>
+                    <button
+                      id="list-libraries-button"
+                      class="btn btn-outline-info"
+                    >
+                      <i class="bi bi-list-ul me-1"></i>Xem danh sách
+                    </button>
+                    <button
+                      id="restore-all-button"
+                      class="btn btn-outline-warning"
+                    >
+                      <i class="bi bi-arrow-clockwise me-1"></i>Khôi phục tất cả
+                    </button>
+                    <button id="search-button" class="btn btn-primary">
+                      <i class="bi bi-search me-1"></i>Tìm kiếm
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map" class="map-container">
+      <!-- Debug info -->
+      <div
+        style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 20px;
+          border-radius: 10px;
+          z-index: 9999;
+          text-align: center;
+        "
+      >
+        <h4>🗺️ Bản đồ đang tải...</h4>
+        <p>Nếu bạn thấy thông báo này, container đã hiển thị</p>
+        <p>Đang chờ JavaScript khởi tạo...</p>
+      </div>
+    </div>
+
+    <!-- Filter Modal Bootstrap -->
+    <div
+      class="modal fade"
+      id="filterModal"
+      tabindex="-1"
+      aria-labelledby="filterModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="filterModalLabel">
+              <i class="bi bi-funnel me-2"></i>Bộ lọc thư viện
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <h6 class="fw-semibold text-primary mb-3">
+                  <i class="bi bi-wifi me-2"></i>Tiện ích
+                </h6>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="filter-wifi"
+                      />
+                      <label class="form-check-label" for="filter-wifi"
+                        >Wifi</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="filter-phong-doc"
+                      />
+                      <label class="form-check-label" for="filter-phong-doc"
+                        >Phòng đọc</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="filter-canteen"
+                      />
+                      <label class="form-check-label" for="filter-canteen"
+                        >Canteen</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="filter-dieu-hoa"
+                      />
+                      <label class="form-check-label" for="filter-dieu-hoa"
+                        >Điều hòa</label
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Loại thư viện</label>
+                <select id="filter-phanloai" class="form-select">
+                  <option value="">Tất cả</option>
+                  <option value="Thư viện công cộng">Thư viện công cộng</option>
+                  <option value="Thư viện tư nhân">Thư viện tư nhân</option>
+                  <option value="Thư viện công cộng(có thư viện số)">
+                    Thư viện công cộng(có thư viện số)
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Thể loại sách</label>
+                <input
+                  type="text"
+                  id="filter-genre"
+                  class="form-control"
+                  placeholder="Nhập thể loại"
+                />
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Tên sách</label>
+                <input
+                  type="text"
+                  id="filter-book-name"
+                  class="form-control"
+                  placeholder="Nhập tên sách"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Đóng
+            </button>
+            <button
+              type="button"
+              id="reset-filter"
+              class="btn btn-outline-warning me-2"
+            >
+              <i class="bi bi-arrow-clockwise me-1"></i>Đặt lại
+            </button>
+            <button type="button" id="apply-filter" class="btn btn-primary">
+              <i class="bi bi-check-circle me-1"></i>Áp dụng
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Library Sidebar Bootstrap -->
+    <div id="library-sidebar" class="sidebar-offcanvas">
+      <div class="sidebar-content">
+        <div
+          class="sidebar-header d-flex justify-content-between align-items-center mb-3"
+        >
+          <h5 class="mb-0 text-primary fw-bold">
+            <i class="bi bi-info-circle me-2"></i>Thông tin Thư viện
+          </h5>
+          <button class="close-sidebar btn-close" aria-label="Close"></button>
+        </div>
+        <div id="sidebar-content" class="sidebar-body"></div>
+      </div>
+    </div>
+
+    <!-- Books Modal Bootstrap -->
+    <div
+      class="modal fade"
+      id="booksModal"
+      tabindex="-1"
+      aria-labelledby="booksModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="booksModalLabel">
+              <i class="bi bi-book me-2"></i>Danh sách sách
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="books-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Results Modal -->
+    <div
+      class="modal fade"
+      id="filterResultsModal"
+      tabindex="-1"
+      aria-labelledby="filterResultsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="filterResultsModalLabel">
+              <i class="bi bi-check-circle me-2"></i>Kết quả bộ lọc
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="filter-results-content"></div>
+          </div>
+          <div class="modal-footer border-0">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-check me-1"></i>Đã hiểu
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Borrow Book Modal -->
+    <div
+      class="modal fade"
+      id="borrowBookModal"
+      tabindex="-1"
+      aria-labelledby="borrowBookModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="borrowBookModalLabel">
+              <i class="bi bi-book me-2"></i>Mượn sách
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="borrowBookForm">
+              <div class="row g-3">
+                <div class="col-12">
+                  <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Thư viện:</strong>
+                    <span id="borrow-library-name"></span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-person me-1"></i>Họ và tên
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="borrower-name"
+                    class="form-control"
+                    placeholder="Nhập họ và tên đầy đủ"
+                    required
+                  />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-envelope me-1"></i>Email
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="borrower-email"
+                    class="form-control"
+                    placeholder="example@email.com"
+                    required
+                  />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-telephone me-1"></i>Số điện thoại
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="borrower-phone"
+                    class="form-control"
+                    placeholder="0123456789"
+                    required
+                  />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-calendar me-1"></i>Ngày mượn
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="borrow-date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-calendar-check me-1"></i>Ngày trả dự kiến
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="return-date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-book me-1"></i>Loại sách muốn mượn
+                  </label>
+                  <select id="book-category" class="form-select">
+                    <option value="">Chọn loại sách</option>
+                    <option value="Sách giáo khoa">Sách giáo khoa</option>
+                    <option value="Văn học">Văn học</option>
+                    <option value="Khoa học">Khoa học</option>
+                    <option value="Lịch sử">Lịch sử</option>
+                    <option value="Nghệ thuật">Nghệ thuật</option>
+                    <option value="Kinh tế">Kinh tế</option>
+                    <option value="Công nghệ">Công nghệ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-chat-text me-1"></i>Ghi chú
+                  </label>
+                  <textarea
+                    id="borrow-notes"
+                    class="form-control"
+                    rows="3"
+                    placeholder="Ghi chú thêm về sách muốn mượn hoặc yêu cầu đặc biệt..."
+                  ></textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-x-circle me-1"></i>Hủy
+            </button>
+            <button type="button" id="submit-borrow" class="btn btn-success">
+              <i class="bi bi-check-circle me-1"></i>Gửi yêu cầu
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Libraries List Modal -->
+    <div
+      class="modal fade"
+      id="librariesListModal"
+      tabindex="-1"
+      aria-labelledby="librariesListModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title" id="librariesListModalLabel">
+              <i class="bi bi-building me-2"></i>Danh sách tất cả thư viện
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <input
+                  type="text"
+                  id="library-search"
+                  class="form-control"
+                  placeholder="Tìm kiếm thư viện..."
+                />
+              </div>
+              <div class="col-md-3">
+                <select id="library-type-filter" class="form-select">
+                  <option value="">Tất cả loại</option>
+                  <option value="Thư viện công cộng">Thư viện công cộng</option>
+                  <option value="Thư viện tư nhân">Thư viện tư nhân</option>
+                  <option value="Thư viện trường học">
+                    Thư viện trường học
+                  </option>
+                  <option value="Thư viện công cộng(có thư viện số)">
+                    Thư viện công cộng(có thư viện số)
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <button
+                  id="refresh-libraries"
+                  class="btn btn-outline-primary w-100"
+                >
+                  <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+                </button>
+              </div>
+            </div>
+            <div id="libraries-list-content">
+              <div class="text-center text-muted">
+                <i class="bi bi-hourglass-split" style="font-size: 2rem"></i>
+                <p>Đang tải danh sách thư viện...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rating and Comment Modal -->
+    <div
+      class="modal fade"
+      id="ratingCommentModal"
+      tabindex="-1"
+      aria-labelledby="ratingCommentModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title" id="ratingCommentModalLabel">
+              <i class="bi bi-star me-2"></i>Đánh giá và Bình luận
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="ratingCommentForm">
+              <div class="row g-3">
+                <div class="col-12">
+                  <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Thư viện:</strong>
+                    <span id="rating-library-name"></span>
+                  </div>
+                </div>
+
+                <!-- Rating Section -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-star me-1"></i>Đánh giá (1-5 sao)
+                    <span class="text-danger">*</span>
+                  </label>
+                  <div class="star-rating mb-3">
+                    <span class="star" data-rating="1">⭐</span>
+                    <span class="star" data-rating="2">⭐</span>
+                    <span class="star" data-rating="3">⭐</span>
+                    <span class="star" data-rating="4">⭐</span>
+                    <span class="star" data-rating="5">⭐</span>
+                  </div>
+                  <input
+                    type="hidden"
+                    id="rating-value"
+                    name="rating"
+                    required
+                  />
+                </div>
+
+                <!-- Comment Section -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-chat-text me-1"></i>Bình luận
+                  </label>
+                  <textarea
+                    id="comment-text"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Chia sẻ trải nghiệm của bạn về thư viện này..."
+                  ></textarea>
+                </div>
+
+                <!-- User Info -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-person me-1"></i>Tên của bạn
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="rating-user-name"
+                    class="form-control"
+                    placeholder="Nhập tên của bạn"
+                    required
+                  />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">
+                    <i class="bi bi-envelope me-1"></i>Email
+                  </label>
+                  <input
+                    type="email"
+                    id="rating-user-email"
+                    class="form-control"
+                    placeholder="example@email.com"
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-x-circle me-1"></i>Hủy
+            </button>
+            <button
+              type="button"
+              id="submit-rating-comment"
+              class="btn btn-warning"
+            >
+              <i class="bi bi-check-circle me-1"></i>Gửi đánh giá
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Locate Control -->
+    <div class="locate-control">
+      <button id="locate-button" class="btn btn-primary btn-lg shadow-lg">
+        <i class="bi bi-geo-alt-fill me-2"></i>Vị trí của tôi
+      </button>
+      <span id="locate-loading" class="ms-3 text-muted" style="display: none">
+        <i class="bi bi-arrow-clockwise spin"></i> Đang định vị...
+      </span>
+    </div>
+
+    <!-- Modal đánh giá thư viện -->
+    <div
+      class="modal fade"
+      id="ratingModal"
+      tabindex="-1"
+      aria-labelledby="ratingModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="ratingModalLabel">
+              <i class="bi bi-star-fill me-2"></i>Đánh giá thư viện
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="ratingForm">
+              <input type="hidden" id="ratingLibraryId" name="libraryId" />
+
+              <div class="mb-4">
+                <label class="form-label fw-bold">
+                  <i class="bi bi-building me-2"></i>Thư viện:
+                </label>
+                <p
+                  class="form-control-plaintext fw-semibold text-primary"
+                  id="ratingLibraryName"
+                ></p>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-bold">
+                  <i class="bi bi-person me-2"></i>Tên người đánh giá:
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="userName"
+                  placeholder="Nhập tên của bạn"
+                  required
+                />
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-bold">
+                  <i class="bi bi-star me-2"></i>Điểm đánh giá:
+                </label>
+                <div class="rating-stars">
+                  <input type="radio" id="star5" name="rating" value="5" />
+                  <label for="star5" title="Rất tốt">⭐</label>
+                  <input type="radio" id="star4" name="rating" value="4" />
+                  <label for="star4" title="Tốt">⭐</label>
+                  <input type="radio" id="star3" name="rating" value="3" />
+                  <label for="star3" title="Bình thường">⭐</label>
+                  <input type="radio" id="star2" name="rating" value="2" />
+                  <label for="star2" title="Không tốt">⭐</label>
+                  <input type="radio" id="star1" name="rating" value="1" />
+                  <label for="star1" title="Rất tệ">⭐</label>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-bold">
+                  <i class="bi bi-chat-text me-2"></i>Nhận xét (tùy chọn):
+                </label>
+                <textarea
+                  class="form-control"
+                  name="comment"
+                  rows="3"
+                  placeholder="Chia sẻ trải nghiệm của bạn về thư viện này..."
+                ></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-x-circle me-1"></i>Hủy
+            </button>
+            <button
+              type="button"
+              class="btn btn-warning"
+              onclick="submitRating()"
+            >
+              <i class="bi bi-star-fill me-1"></i>Gửi đánh giá
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      console.log("📦 Bootstrap đã được load");
+    </script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+      console.log("🌿 Leaflet script tag đã được load");
+      console.log("🌿 Leaflet object sau script tag:", typeof L);
+      console.log(
+        "🌿 Leaflet version sau script tag:",
+        L ? L.version : "Không có"
+      );
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
+
+    <script>
+      console.log("🛣️ Leaflet routing đã được load");
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <script>
+      console.log("📷 Pannellum đã được load");
+    </script>
+
+    <script>
+      // Khởi tạo bản đồ
+      console.log("🚀 Bắt đầu khởi tạo bản đồ Leaflet...");
+
+      // Test DOM
+      const mapContainer = document.getElementById("map");
+      console.log("📍 Map container:", mapContainer);
+
+      // Gắn cờ quyền admin để hiển thị nút chỉnh sửa
+      const IS_ADMIN = <%= user && user.role === 'admin' ? 'true' : 'false' %>;
+
+      // Test Leaflet
+      if (typeof L !== "undefined") {
+        console.log("✅ Leaflet sẵn sàng, đang tạo bản đồ...");
+
+        try {
+          const map = L.map("map").setView(
+            [21.07088380428482, 105.77995583357745],
+            13
+          );
+          console.log("✅ Bản đồ đã được tạo:", map);
+
+          // Thêm tile layer
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "© OpenStreetMap",
+          }).addTo(map);
+
+          console.log("✅ Tile layer đã được thêm");
+
+          // Ẩn debug info
+          const debugInfo = mapContainer.querySelector(
+            'div[style*="position: absolute"]'
+          );
+          if (debugInfo) {
+            debugInfo.style.display = "none";
+            console.log("✅ Đã ẩn debug info");
+          }
+
+          // Thêm marker test
+          const testMarker = L.marker([21.0285, 105.8542]).addTo(map);
+          testMarker.bindPopup("Thư viện Test - Hà Nội").openPopup();
+
+          console.log("✅ Marker test đã được thêm");
+
+          // Thêm marker thư viện test
+          const libraryIcon = L.icon({
+            iconUrl: "/images/igg.png",
+            iconSize: [60, 60],
+            iconAnchor: [30, 60],
+            popupAnchor: [0, -50],
+          });
+
+          const libraryMarker = L.marker([21.0285, 105.8542], {
+            icon: libraryIcon,
+          }).addTo(map);
+          libraryMarker.bindPopup("Thư viện Quốc gia - Hà Nội").openPopup();
+
+          console.log("✅ Marker thư viện đã được thêm");
+
+          // Tải dữ liệu thật từ API
+          console.log("🔄 Bắt đầu tải dữ liệu thư viện từ API...");
+          fetch("/data")
+            .then((response) => {
+              console.log("📡 Response status:", response.status);
+              return response.json();
+            })
+            .then((data) => {
+              console.log("📊 Dữ liệu API nhận được:", data);
+              if (data && data.features) {
+                console.log("✅ Có dữ liệu features:", data.features.length);
+                renderAllLibraries(data.features, map, libraryIcon);
+              } else {
+                console.error("❌ Dữ liệu từ API không hợp lệ:", data);
+              }
+            })
+            .catch((error) => {
+              console.error("❌ Lỗi khi tải dữ liệu API:", error);
+            });
+
+          // Hàm hiển thị tất cả thư viện
+          function renderAllLibraries(features, map, icon) {
+            console.log("🎯 Bắt đầu render tất cả thư viện...");
+
+            // Xóa markers cũ (giữ lại marker test)
+            map.eachLayer((layer) => {
+              if (
+                layer instanceof L.Marker &&
+                layer !== libraryMarker &&
+                layer !== testMarker
+              ) {
+                map.removeLayer(layer);
+              }
+            });
+
+            let markerCount = 0;
+            features.forEach((feature, index) => {
+              const coords = feature.geometry.coordinates;
+              const properties = feature.properties;
+
+              if (!properties.ID || !coords || coords.length !== 2) {
+                return;
+              }
+
+              try {
+                const marker = L.marker([coords[1], coords[0]], {
+                  icon: icon,
+                }).addTo(map);
+
+                markerCount++;
+
+                // Tạo popup với thông tin thư viện và hình ảnh
+                const popupContent = `
+                  <div style="min-width: 300px;">
+                    <h6 style="color: #0d6efd; margin-bottom: 10px;">
+                      <i class="bi bi-building me-2"></i>${
+                        properties.TenThuVien
+                      }
+                    </h6>
+                    ${
+                      properties.Anh360
+                        ? `
+                      <div style="margin-bottom: 10px; text-align: center;">
+                        <img src="${properties.Anh360}" alt="${properties.TenThuVien}"
+                             style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
+                      </div>
+                    `
+                        : ""
+                    }
+                    <p style="margin-bottom: 8px;">
+                      <i class="bi bi-geo-alt text-success me-2"></i>${
+                        properties.DiaChi
+                      }
+                    </p>
+                    <p style="margin-bottom: 8px;">
+                      <i class="bi bi-tag text-primary me-2"></i>${
+                        properties.phanloai || "Không xác định"
+                      }
+                    </p>
+                    
+                    <!-- Thông tin sách -->
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                      <h6 style="color: #28a745; margin-bottom: 8px;">
+                        <i class="bi bi-book me-2"></i>Thông tin sách
+                      </h6>
+                      <div id="books-preview-${properties.ID}" style="font-size: 14px;">
+                        <div class="text-muted" style="font-size:12px">
+                          Đang tải sách...
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style="font-size: 12px; color: #6c757d; margin-bottom: 15px;">
+                      <span class="me-3">
+                        <i class="bi bi-wifi ${
+                          properties.Wifi ? "text-success" : "text-muted"
+                        }"></i> Wifi
+                      </span>
+                      <span class="me-3">
+                        <i class="bi bi-book ${
+                          properties.PhongDoc ? "text-info" : "text-muted"
+                        }"></i> Phòng đọc
+                      </span>
+                      <span class="me-3">
+                        <i class="bi bi-cup-hot ${
+                          properties.Canteen ? "text-warning" : "text-muted"
+                        }"></i> Canteen
+                      </span>
+                      <span>
+                        <i class="bi bi-snow ${
+                          properties.DieuHoa ? "text-primary" : "text-muted"
+                        }"></i> Điều hòa
+                      </span>
+                    </div>
+                    
+                    <div class="d-flex gap-2 flex-wrap">
+                      <button class="btn btn-sm btn-outline-primary" onclick="showDirections(${coords[1]}, ${coords[0]}, '${properties.TenThuVien}')">
+                        <i class="bi bi-route"></i> Chỉ đường
+                      </button>
+                      ${IS_ADMIN ? `
+                      <button class="btn btn-sm btn-outline-warning" onclick="openAdminEdit(${properties.ID})">
+                        <i class="bi bi-pencil-square"></i> Chỉnh sửa
+                      </button>
+                      ` : ''}
+                      <button class="btn btn-sm btn-outline-warning" onclick="showRatingModal(${
+                        properties.ID
+                      }, '${properties.TenThuVien}')">
+                        <i class="bi bi-star"></i> Đánh giá
+                      </button>
+                      <button class="btn btn-sm btn-outline-success" onclick="borrowBook('${
+                        properties.TenThuVien
+                      }', ${properties.ID})" 
+                        style="border: 2px solid #28a745; font-weight: bold; background-color: #d4edda;">
+                        <i class="bi bi-book"></i> Mượn sách
+                      </button>
+                      <button class="btn btn-sm btn-outline-info" onclick="viewLibraryBooks(${
+                        properties.ID
+                      }, '${properties.TenThuVien}')">
+                        <i class="bi bi-list-ul"></i> Xem sách
+                      </button>
+                      ${
+                        properties.Anh360
+                          ? `
+                        <button class="btn btn-sm btn-outline-info" onclick="view360Image('${properties.Anh360}', '${properties.TenThuVien}')">
+                          <i class="bi bi-camera"></i> 360°
+                        </button>
+                      `
+                          : ""
+                      }
+                    </div>
+                  </div>
+                `;
+
+                marker.bindPopup(popupContent);
+
+                // Khi mở popup, tải danh sách sách thật từ API để hiển thị
+                marker.on('popupopen', () => {
+                  const containerId = `books-preview-${properties.ID}`;
+                  fetchAndRenderLibraryBooksPreview(properties.ID, containerId);
+                });
+
+                // Xử lý click vào marker
+                marker.on("click", () => {
+                  console.log("🖱️ Click vào thư viện:", properties.TenThuVien);
+                  // Có thể thêm sidebar hiển thị chi tiết ở đây
+                });
+              } catch (error) {
+                console.error("❌ Lỗi khi tạo marker:", error);
+              }
+            });
+
+            console.log(
+              `🎉 Hoàn thành! Đã tạo ${markerCount} markers thư viện`
+            );
+          }
+
+          // Khởi tạo modal danh sách thư viện
+          const librariesListModal = new bootstrap.Modal(
+            document.getElementById("librariesListModal")
+          );
+
+          // Xử lý nút "Xem danh sách"
+          const listLibrariesButton = document.getElementById(
+            "list-libraries-button"
+          );
+          if (listLibrariesButton) {
+            listLibrariesButton.addEventListener("click", () => {
+              console.log("📋 Người dùng nhấn nút 'Xem danh sách'");
+              showLibrariesList();
+              librariesListModal.show();
+            });
+          }
+
+          // Xử lý nút "Khôi phục tất cả thư viện"
+          const restoreAllButton =
+            document.getElementById("restore-all-button");
+          if (restoreAllButton) {
+            restoreAllButton.addEventListener("click", () => {
+              console.log("🔄 Người dùng nhấn nút 'Khôi phục tất cả'");
+              restoreAllLibraries();
+            });
+          }
+
+          // Hàm hiển thị danh sách thư viện
+          function showLibrariesList() {
+            console.log("📋 Đang hiển thị danh sách thư viện...");
+
+            fetch("/data")
+              .then((response) => response.json())
+              .then((data) => {
+                if (data && data.features) {
+                  renderLibrariesList(data.features);
+                }
+              })
+              .catch((error) => {
+                console.error("❌ Lỗi khi tải danh sách thư viện:", error);
+              });
+          }
+
+          // Hàm render danh sách thư viện
+          function renderLibrariesList(features) {
+            const content = document.getElementById("libraries-list-content");
+
+            if (!features || features.length === 0) {
+              content.innerHTML =
+                '<div class="alert alert-info">Không có thư viện nào.</div>';
+              return;
+            }
+
+            let html = `
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th>STT</th>
+                      <th>Tên thư viện</th>
+                      <th>Địa chỉ</th>
+                      <th>Loại</th>
+                      <th>Tiện ích</th>
+                      <th>Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+            `;
+
+            features.forEach((feature, index) => {
+              const properties = feature.properties;
+              const coords = feature.geometry.coordinates;
+
+              html += `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td><strong>${
+                    properties.TenThuVien || "Không xác định"
+                  }</strong></td>
+                  <td>${properties.DiaChi || "Không xác định"}</td>
+                  <td><span class="badge bg-primary">${
+                    properties.phanloai || "Không xác định"
+                  }</span></td>
+                  <td>
+                    <div class="d-flex gap-2">
+                      <span class="badge ${
+                        properties.Wifi ? "bg-success" : "bg-secondary"
+                      }">Wifi</span>
+                      <span class="badge ${
+                        properties.PhongDoc ? "bg-info" : "bg-secondary"
+                      }">Phòng đọc</span>
+                      <span class="badge ${
+                        properties.Canteen ? "bg-warning" : "bg-secondary"
+                      }">Canteen</span>
+                      <span class="badge ${
+                        properties.DieuHoa ? "bg-primary" : "bg-secondary"
+                      }">Điều hòa</span>
+                    </div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showOnMap(${
+                      coords[1]
+                    }, ${coords[0]}, '${properties.TenThuVien}')">
+                      <i class="bi bi-map"></i> Xem trên bản đồ
+                    </button>
+                  </td>
+                </tr>
+              `;
+            });
+
+            html += `
+                  </tbody>
+                </table>
+              </div>
+              <div class="text-muted text-center mt-3">
+                Tổng cộng: <strong>${features.length}</strong> thư viện
+              </div>
+            `;
+
+            content.innerHTML = html;
+          }
+
+          // Hàm hiển thị thư viện trên bản đồ
+          window.showOnMap = function (lat, lng, libraryName) {
+            console.log("🗺️ Hiển thị thư viện trên bản đồ:", {
+              lat,
+              lng,
+              libraryName,
+            });
+
+            // Di chuyển bản đồ đến vị trí thư viện
+            map.setView([lat, lng], 16);
+
+            // Tìm marker tương ứng với tọa độ này
+            let targetMarker = null;
+            map.eachLayer((layer) => {
+              if (layer instanceof L.Marker) {
+                const markerLatLng = layer.getLatLng();
+                // So sánh tọa độ với độ chính xác 0.0001 (khoảng 10m)
+                if (
+                  Math.abs(markerLatLng.lat - lat) < 0.0001 &&
+                  Math.abs(markerLatLng.lng - lng) < 0.0001
+                ) {
+                  targetMarker = layer;
+                }
+              }
+            });
+
+            // Mở popup nếu tìm thấy marker
+            if (targetMarker) {
+              console.log("✅ Tìm thấy marker, đang mở popup...");
+              // Đợi một chút để bản đồ hoàn thành việc di chuyển
+              setTimeout(() => {
+                targetMarker.openPopup();
+              }, 500);
+            } else {
+              console.log("❌ Không tìm thấy marker tương ứng");
+              // Nếu không tìm thấy marker, tạo popup tạm thời
+              setTimeout(() => {
+                const tempMarker = L.marker([lat, lng]).addTo(map);
+                tempMarker
+                  .bindPopup(
+                    `
+                  <div style="min-width: 250px;">
+                    <h6 style="color: #0d6efd; margin-bottom: 10px;">
+                      <i class="bi bi-building me-2"></i>${libraryName}
+                    </h6>
+                    <p style="margin-bottom: 8px;">
+                      <i class="bi bi-geo-alt text-success me-2"></i>Vị trí: ${lat.toFixed(
+                        6
+                      )}, ${lng.toFixed(6)}
+                    </p>
+                    <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showDirections(${lat}, ${lng}, '${libraryName}')">
+                        <i class="bi bi-route"></i> Chỉ đường
+                      </button>
+                    </div>
+                  </div>
+                `
+                  )
+                  .openPopup();
+
+                // Xóa marker tạm thời sau 10 giây
+                setTimeout(() => {
+                  map.removeLayer(tempMarker);
+                }, 10000);
+              }, 500);
+            }
+
+            // Đóng modal danh sách
+            librariesListModal.hide();
+          };
+
+          // Xử lý tìm kiếm trong danh sách
+          const librarySearch = document.getElementById("library-search");
+          if (librarySearch) {
+            librarySearch.addEventListener("input", (e) => {
+              const query = e.target.value.toLowerCase();
+              filterLibrariesList(query);
+            });
+          }
+
+          // Xử lý bộ lọc loại thư viện
+          const libraryTypeFilter = document.getElementById(
+            "library-type-filter"
+          );
+          if (libraryTypeFilter) {
+            libraryTypeFilter.addEventListener("change", (e) => {
+              const selectedType = e.target.value;
+              filterLibrariesList("", selectedType);
+            });
+          }
+
+          // Hàm lọc danh sách thư viện
+          function filterLibrariesList(searchQuery = "", selectedType = "") {
+            fetch("/data")
+              .then((response) => response.json())
+              .then((data) => {
+                if (data && data.features) {
+                  let filteredFeatures = data.features;
+
+                  // Lọc theo tìm kiếm
+                  if (searchQuery) {
+                    filteredFeatures = filteredFeatures.filter(
+                      (feature) =>
+                        feature.properties.TenThuVien.toLowerCase().includes(
+                          searchQuery
+                        ) ||
+                        feature.properties.DiaChi.toLowerCase().includes(
+                          searchQuery
+                        )
+                    );
+                  }
+
+                  // Lọc theo loại
+                  if (selectedType) {
+                    filteredFeatures = filteredFeatures.filter(
+                      (feature) => feature.properties.phanloai === selectedType
+                    );
+                  }
+
+                  renderLibrariesList(filteredFeatures);
+                }
+              })
+              .catch((error) => {
+                console.error("❌ Lỗi khi lọc thư viện:", error);
+              });
+          }
+
+          // Xử lý nút làm mới
+          const refreshLibraries = document.getElementById("refresh-libraries");
+          if (refreshLibraries) {
+            refreshLibraries.addEventListener("click", () => {
+              console.log("🔄 Làm mới danh sách thư viện");
+              showLibrariesList();
+            });
+          }
+
+          // Xử lý nút tìm kiếm
+          const searchButton = document.getElementById("search-button");
+          const searchInput = document.querySelector("#main-search");
+
+          if (searchButton && searchInput) {
+            searchButton.addEventListener("click", () => {
+              console.log("🔍 Người dùng nhấn nút 'Tìm kiếm'");
+              performSearch();
+            });
+
+            // Tìm kiếm khi nhấn Enter
+            searchInput.addEventListener("keypress", (e) => {
+              if (e.key === "Enter") {
+                console.log("🔍 Người dùng nhấn Enter để tìm kiếm");
+                performSearch();
+              }
+            });
+          }
+
+          // Hàm thực hiện tìm kiếm
+          function performSearch() {
+            const searchQuery = searchInput.value.trim();
+
+            if (!searchQuery) {
+              alert("Vui lòng nhập tên thư viện cần tìm!");
+              return;
+            }
+
+            console.log("🔍 Đang tìm kiếm:", searchQuery);
+
+            // Tìm kiếm trong dữ liệu hiện có
+            fetch("/data")
+              .then((response) => response.json())
+              .then((data) => {
+                if (data && data.features) {
+                  const results = searchLibraries(data.features, searchQuery);
+                  if (results.length > 0) {
+                    showSearchResults(results, searchQuery);
+                  } else {
+                    alert(
+                      `Không tìm thấy thư viện nào có tên chứa "${searchQuery}"`
+                    );
+                  }
+                }
+              })
+              .catch((error) => {
+                console.error("❌ Lỗi khi tìm kiếm:", error);
+                alert("Có lỗi xảy ra khi tìm kiếm!");
+              });
+          }
+
+          // Hàm tìm kiếm thư viện
+          function searchLibraries(libraries, query) {
+            const searchTerm = query.toLowerCase();
+            return libraries.filter((library) => {
+              const name = library.properties.TenThuVien?.toLowerCase() || "";
+              const address = library.properties.DiaChi?.toLowerCase() || "";
+              const type = library.properties.phanloai?.toLowerCase() || "";
+
+              return (
+                name.includes(searchTerm) ||
+                address.includes(searchTerm) ||
+                type.includes(searchTerm)
+              );
+            });
+          }
+
+          // Hàm hiển thị kết quả tìm kiếm
+          function showSearchResults(results, query) {
+            console.log(`✅ Tìm thấy ${results.length} kết quả cho "${query}"`);
+
+            // Xóa tất cả markers cũ
+            map.eachLayer((layer) => {
+              if (
+                layer instanceof L.Marker &&
+                layer !== currentLocationMarker
+              ) {
+                map.removeLayer(layer);
+              }
+            });
+
+            // Hiển thị markers cho kết quả tìm kiếm
+            const searchIcon = L.icon({
+              iconUrl: "/images/igg.png",
+              iconSize: [60, 60],
+              iconAnchor: [30, 60],
+              popupAnchor: [0, -50],
+            });
+
+            let bounds = L.latLngBounds();
+
+            results.forEach((library, index) => {
+              const coords = library.geometry.coordinates;
+              const properties = library.properties;
+
+              const marker = L.marker([coords[1], coords[0]], {
+                icon: searchIcon,
+              }).addTo(map);
+
+              // Tạo popup với thông tin thư viện và hình ảnh
+              const popupContent = `
+                  <div style="min-width: 250px;">
+                    <h6 style="color: #0d6efd; margin-bottom: 10px;">
+                      <i class="bi bi-building me-2"></i>${
+                        properties.TenThuVien
+                      }
+                    </h6>
+
+                    <!-- Debug info -->
+                    <div style="background: #f8f9fa; padding: 5px; margin: 5px 0; border-radius: 5px; font-size: 12px; color: #6c757d;">
+                      <strong>Debug:</strong> ID: ${
+                        properties.ID
+                      }, Có nút mượn sách
+                    </div>
+                  ${
+                    properties.Anh360
+                      ? `
+                    <div style="margin-bottom: 10px; text-align: center;">
+                      <img src="${properties.Anh360}" alt="${properties.TenThuVien}"
+                           style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
+                    </div>
+                  `
+                      : ""
+                  }
+                  <p style="margin-bottom: 8px;">
+                    <i class="bi bi-geo-alt text-success me-2"></i>${
+                      properties.DiaChi
+                    }
+                  </p>
+                  <p style="margin-bottom: 8px;">
+                    <i class="bi bi-tag text-primary me-2"></i>${
+                      properties.phanloai || "Không xác định"
+                    }
+                  </p>
+                  <div style="font-size: 12px; color: #6c757d; margin-bottom: 15px;">
+                    <span class="me-3">
+                      <i class="bi bi-wifi ${
+                        properties.Wifi ? "text-success" : "text-muted"
+                      }"></i> Wifi
+                    </span>
+                    <span class="me-3">
+                      <i class="bi bi-book ${
+                        properties.PhongDoc ? "text-info" : "text-muted"
+                      }"></i> Phòng đọc
+                    </span>
+                    <span class="me-3">
+                      <i class="bi bi-cup-hot ${
+                        properties.Canteen ? "text-warning" : "text-muted"
+                      }"></i> Canteen
+                    </span>
+                    <span>
+                      <i class="bi bi-snow ${
+                        properties.DieuHoa ? "text-primary" : "text-muted"
+                      }"></i> Điều hòa
+                    </span>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="showDirections(${ 
+                      coords[1]
+                    }, ${coords[0]}, '${properties.TenThuVien}')">
+                      <i class="bi bi-route"></i> Chỉ đường
+                    </button>
+                    ${IS_ADMIN ? `
+                    <button class="btn btn-sm btn-outline-warning" onclick="openAdminEdit(${properties.ID})">
+                      <i class="bi bi-pencil-square"></i> Chỉnh sửa
+                    </button>
+                    ` : ''}
+                    <button class="btn btn-sm btn-outline-success" onclick="borrowBook('${
+                      properties.TenThuVien
+                    }', ${
+                properties.ID
+              })" style="border: 2px solid #28a745; font-weight: bold; background-color: #d4edda;">
+                      <i class="bi bi-book"></i> Mượn sách
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="viewLibraryBooks(${
+                      properties.ID
+                    }, '${properties.TenThuVien}')">
+                      <i class="bi bi-list-ul"></i> Xem sách
+                    </button>
+                    ${
+                      properties.Anh360
+                        ? `
+                      <button class="btn btn-sm btn-outline-info" onclick="view360Image('${properties.Anh360}', '${properties.TenThuVien}')">
+                        <i class="bi bi-camera"></i> 360°
+                      </button>
+                    `
+                        : ""
+                    }
+                  </div>
+                  <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                    <div id="books-preview-${properties.ID}" style="font-size: 13px;">
+                      <span class="text-muted" style="font-size:12px">Đang tải sách...</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+              marker.bindPopup(popupContent);
+              marker.on('popupopen', () => {
+                const containerId = `books-preview-${properties.ID}`;
+                fetchAndRenderLibraryBooksPreview(properties.ID, containerId);
+              });
+              bounds.extend([coords[1], coords[0]]);
+            });
+
+            // Di chuyển bản đồ để hiển thị tất cả kết quả
+            if (bounds.isValid()) {
+              map.fitBounds(bounds, { padding: [20, 20] });
+            }
+
+            // Hiển thị thông báo kết quả
+            alert(
+              `Tìm thấy ${results.length} thư viện cho "${query}"!\nBản đồ đã được cập nhật để hiển thị kết quả.`
+            );
+          }
+
+          // Hàm chỉ đường từ vị trí hiện tại đến thư viện
+                    // Hàm chỉ đường từ vị trí hiện tại đến thư viện
+                    function showDirections(lat, lng, libraryName) {
+            if (!currentLocationMarker) {
+              alert(
+                "Vui lòng sử dụng 'Vị trí của tôi' trước để xác định vị trí hiện tại!"
+              );
+              return;
+            }
+
+            const currentLat = currentLocationMarker.getLatLng().lat;
+            const currentLng = currentLocationMarker.getLatLng().lng;
+
+            console.log("🗺️ Chỉ đường từ", { currentLat, currentLng }, "đến", {
+              lat,
+              lng,
+            });
+
+            // Tính khoảng cách và thời gian
+            const distance = calculateDistance(currentLat, currentLng, lat, lng);
+            const timeEstimates = estimateTravelTime(distance);
+            
+                        // Xóa route cũ nếu có
+                        if (window.currentRoute) {
+              window.currentRoute.remove();
+            }
+
+            // Ẩn Leaflet Routing Machine mặc định
+            const routingContainers = document.querySelectorAll('.leaflet-routing-container');
+            routingContainers.forEach(container => {
+              container.style.display = 'none';
+            });
+
+            // Tạo đường thẳng đơn giản thay vì sử dụng routing service
+            const routeLine = L.polyline([
+              [currentLat, currentLng],
+              [lat, lng]
+            ], {
+              color: '#4CAF50',
+              weight: 6,
+              opacity: 0.8,
+              dashArray: '10, 10'
+            }).addTo(map);
+
+            // Thêm marker điểm bắt đầu
+            const startMarker = L.marker([currentLat, currentLng], {
+              icon: L.icon({
+                iconUrl: "/images/diem.jpg",
+                iconSize: [25, 25],
+                iconAnchor: [12, 12]
+              })
+            }).addTo(map).bindPopup("Vị trí của bạn");
+
+            // Thêm marker điểm đến
+            const endMarker = L.marker([lat, lng], {
+              icon: L.icon({
+                iconUrl: "/images/thuvien.jpg",
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+              })
+            }).addTo(map).bindPopup(libraryName);
+
+            // Lưu route hiện tại để có thể xóa sau
+            window.currentRoute = {
+              line: routeLine,
+              startMarker: startMarker,
+              endMarker: endMarker,
+              remove: function() {
+                map.removeLayer(this.line);
+                map.removeLayer(this.startMarker);
+                map.removeLayer(this.endMarker);
+              }
+            };
+
+            // Fit map để hiển thị cả hai điểm
+            map.fitBounds([
+              [currentLat, currentLng],
+              [lat, lng]
+            ], { padding: [20, 20] });
+            //Xóa ruote cũ nếu có 
+            if(window.currentRoute){
+              window.currentRoute.remove();
+            }
+            //Ânr hoàn toàn leaflet routing machine mặc định 
+            
+
+            // Tạo route control mới
+            window.currentRoute = L.Routing.control({
+              waypoints: [
+                L.latLng(currentLat, currentLng),
+                L.latLng(lat, lng)
+              ],
+              routeWhileDragging: false,
+              addWaypoints: false,
+              createMarker: function(i, waypoint, n) {
+                if (i === 0) {
+                  // Marker điểm bắt đầu (vị trí hiện tại)
+                  return L.marker(waypoint.latLng, {
+                    icon: L.icon({
+                      iconUrl: "/images/diem.jpg",
+                      iconSize: [25, 25],
+                      iconAnchor: [12.5, 12.5],
+                    })
+                  }).bindPopup("Vị trí của bạn");
+                } else {
+                  // Marker điểm đến (thư viện)
+                  return L.marker(waypoint.latLng, {
+                    icon: L.icon({
+                      iconUrl: "/images/igg.png",
+                      iconSize: [60, 60],
+                      iconAnchor: [30, 60],
+                      popupAnchor: [0, -50],
+                    })
+                  }).bindPopup(`Đích đến: ${libraryName}`);
+                }
+              },
+              lineOptions: {
+                styles: [
+                  {
+                    color: '#3388ff',
+                    weight: 6,
+                    opacity: 0.8
+                  }
+                ]
+              }
+            }).addTo(map);
+
+            // Hiển thị thông tin chi tiết với design mới
+            const routeInfo = `
+              <div class="route-info">
+                <h6><i class="bi bi-route"></i>Chỉ đường đến ${libraryName}</h6>
+                
+                <div class="info-item">
+                  <div class="label">
+                    <i class="bi bi-rulers"></i>Khoảng cách
+                  </div>
+                  <div class="value">${distance.toFixed(2)} km</div>
+                </div>
+
+                <div class="info-item">
+                  <div class="label">
+                    <i class="bi bi-geo-alt"></i>Điểm bắt đầu
+                  </div>
+                  <div class="value">Vị trí của bạn</div>
+                </div>
+
+                <div class="info-item">
+                  <div class="label">
+                    <i class="bi bi-building"></i>Điểm đến
+                  </div>
+                  <div class="value">${libraryName}</div>
+                </div>
+
+                <div class="time-estimates">
+                  <h7><i class="bi bi-clock"></i>Thời gian ước tính</h7>
+                  <div class="time-item">
+                    <div class="transport-text">
+                      <i class="bi bi-person-walking"></i> Đi bộ
+                    </div>
+                    <div class="time-value">${Math.round(timeEstimates.walking)} phút</div>
+                  </div>
+                  <div class="time-item">
+                    <div class="transport-text">
+                      <i class="bi bi-bicycle"></i> Xe máy
+                    </div>
+                    <div class="time-value">${Math.round(timeEstimates.motorbike)} phút</div>
+                  </div>
+                </div>
+
+                <div class="action-buttons">
+                  <button onclick="clearRoute()" class="btn btn-outline-danger">
+                    <i class="bi bi-x-circle"></i> Xóa chỉ đường
+                  </button>
+                  <button onclick="centerOnRoute()" class="btn btn-outline-primary">
+                    <i class="bi bi-arrows-move"></i> Tập trung
+                  </button>
+                </div>
+              </div>
+            `;
+
+            // Xóa thông tin route cũ
+            const oldRouteInfo = document.querySelector('.route-info');
+            if (oldRouteInfo) {
+              oldRouteInfo.remove();
+            }
+
+            // Thêm thông tin route mới
+            document.body.insertAdjacentHTML('beforeend', routeInfo);
+
+            // Di chuyển bản đồ để hiển thị toàn bộ route
+            const group = new L.featureGroup([
+              L.latLng(currentLat, currentLng),
+              L.latLng(lat, lng)
+            ]);
+            map.fitBounds(group.getBounds().pad(0.1));
+
+            // Hiển thị thông báo
+            alert(
+              `🗺️ Đã tạo chỉ đường đến ${libraryName}!\nKhoảng cách: ${distance.toFixed(2)} km\nThời gian: ${Math.round(timeEstimates.motorbike)} phút (xe máy)\nBản đồ đã được cập nhật với đường đi.`
+            );
+          }
+
+                   // Hàm xóa chỉ đường
+                   window.clearRoute = function() {
+            if (window.currentRoute) {
+              map.removeControl(window.currentRoute);
+              window.currentRoute = null;
+            }
+            
+            // Xóa thông tin route với hiệu ứng
+            const routeInfo = document.querySelector('.route-info');
+            if (routeInfo) {
+              routeInfo.style.animation = 'slideOutLeft 0.3s ease-in forwards';
+              setTimeout(() => {
+                if (routeInfo.parentNode) {
+                  routeInfo.parentNode.removeChild(routeInfo);
+                }
+              }, 300);
+            }
+            
+            console.log("🗑️ Đã xóa chỉ đường");
+          }
+
+          // Hàm xem ảnh 360°
+          function view360Image(imageUrl, libraryName) {
+            if (!imageUrl || imageUrl === "null") {
+              alert(`${libraryName} chưa có ảnh 360°!`);
+              return;
+            }
+
+            console.log("📸 Xem ảnh 360°:", imageUrl);
+
+            // Tạo modal để hiển thị ảnh 360°
+            const modal = document.createElement("div");
+            modal.className = "modal fade";
+            modal.id = "image360Modal";
+            modal.innerHTML = `
+              <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Ảnh 360° - ${libraryName}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body text-center">
+                    <img src="${imageUrl}" alt="${libraryName}" style="width: 100%; height: auto; border-radius: 8px;">
+                  </div>
+                </div>
+              </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Hiển thị modal
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+
+            // Xóa modal khi đóng
+            modal.addEventListener("hidden.bs.modal", () => {
+              document.body.removeChild(modal);
+            });
+          }
+
+          // Hàm khôi phục hiển thị tất cả thư viện
+          function restoreAllLibraries() {
+            console.log(" Khôi phục hiển thị tất cả thư viện");
+
+            // Xóa tất cả markers cũ
+            map.eachLayer((layer) => {
+              if (
+                layer instanceof L.Marker &&
+                layer !== currentLocationMarker
+              ) {
+                map.removeLayer(layer);
+              }
+            });
+
+            // Tải lại tất cả thư viện
+            fetch("/data")
+              .then((response) => response.json())
+              .then((data) => {
+                if (data && data.features) {
+                  renderAllLibraries(data.features, map, libraryIcon);
+                  map.setView([21.0285, 105.8542], 10); // Reset về view mặc định
+                  alert("Đã khôi phục hiển thị tất cả thư viện!");
+                }
+              })
+              .catch((error) => {
+                console.error("❌ Lỗi khi khôi phục thư viện:", error);
+              });
+          }
+
+          // Thêm chức năng "Vị trí của tôi"
+          const locateButton = document.getElementById("locate-button");
+          const locateLoading = document.getElementById("locate-loading");
+          let currentLocationMarker = null;
+
+          if (locateButton) {
+            locateButton.addEventListener("click", () => {
+              console.log("📍 Người dùng nhấn nút 'Vị trí của tôi'");
+
+              if (!navigator.geolocation) {
+                alert("Trình duyệt không hỗ trợ định vị.");
+                return;
+              }
+
+              // Hiển thị loading
+              locateLoading.style.display = "inline";
+              locateButton.disabled = true;
+
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  console.log("✅ Đã lấy được vị trí:", position.coords);
+
+                  const { latitude, longitude, accuracy } = position.coords;
+
+                  // Xóa marker cũ nếu có
+                  if (currentLocationMarker) {
+                    map.removeLayer(currentLocationMarker);
+                  }
+
+                  // Tạo icon vị trí
+                  const locationIcon = L.icon({
+                    iconUrl: "/images/diem.jpg",
+                    iconSize: [25, 25],
+                    iconAnchor: [12.5, 12.5],
+                  });
+
+                  // Thêm marker vị trí hiện tại
+                  currentLocationMarker = L.marker([latitude, longitude], {
+                    icon: locationIcon,
+                  }).addTo(map);
+
+                  currentLocationMarker
+                    .bindPopup(
+                      `Vị trí của bạn hiện tại<br>Độ chính xác: ${accuracy.toFixed(
+                        0
+                      )}m`
+                    )
+                    .openPopup();
+
+                  // Di chuyển bản đồ đến vị trí hiện tại
+                  map.setView([latitude, longitude], 16);
+
+                  console.log("✅ Đã hiển thị vị trí hiện tại");
+
+                  // Ẩn loading
+                  locateLoading.style.display = "none";
+                  locateButton.disabled = false;
+                },
+                (error) => {
+                  console.error("❌ Lỗi khi lấy vị trí:", error);
+
+                  let errorMessage = "Lỗi không xác định";
+                  switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                      errorMessage =
+                        "Quyền truy cập vị trí bị từ chối. Vui lòng cấp quyền trong trình duyệt.";
+                      break;
+                    case error.POSITION_UNAVAILABLE:
+                      errorMessage =
+                        "Không thể xác định vị trí. Vui lòng kiểm tra GPS/Wi-Fi.";
+                      break;
+                    case error.TIMEOUT:
+                      errorMessage =
+                        "Hết thời gian lấy vị trí. Vui lòng thử lại.";
+                      break;
+                  }
+
+                  alert(`Lỗi định vị: ${errorMessage}`);
+
+                  // Ẩn loading
+                  locateLoading.style.display = "none";
+                  locateButton.disabled = false;
+                },
+                {
+                  enableHighAccuracy: true,
+                  timeout: 10000,
+                  maximumAge: 60000,
+                }
+              );
+            });
+
+            console.log("✅ Đã thêm event listener cho nút 'Vị trí của tôi'");
+          }
+          // Hàm tính khoảng cách (cải thiện)
+          function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Bán kính Trái Đất (km)
+            const dLat = ((lat2 - lat1) * Math.PI) / 180;
+            const dLon = ((lon2 - lon1) * Math.PI) / 180;
+            const a =
+              Math.sin(dLat / 2) ** 2 +
+              Math.cos((lat1 * Math.PI) / 180) *
+                Math.cos((lat2 * Math.PI) / 180) *
+                Math.sin(dLon / 2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+
+            console.log(`📏 Khoảng cách tính toán: ${distance.toFixed(2)} km`);
+            return distance;
+          }
+          // Thêm chức năng "Thư viện gần nhất"
+          const nearestButton = document.getElementById(
+            "nearest-library-button"
+          );
+          if (nearestButton) {
+            nearestButton.addEventListener("click", () => {
+              console.log("🎯 Người dùng nhấn nút 'Thư viện gần nhất'");
+
+              if (!navigator.geolocation) {
+                alert("Trình duyệt không hỗ trợ định vị!");
+                return;
+              }
+
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  const { latitude, longitude } = position.coords;
+                  console.log(" Vị trí hiện tại:", { latitude, longitude });
+
+                  // Tìm thư viện gần nhất (sử dụng dữ liệu test)
+                  const testLibraries = [
+                    { name: "Thư viện Quốc gia", lat: 21.0285, lng: 105.8542 },
+                    {
+                      name: "Thư viện Test",
+                      lat: 21.07088380428482,
+                      lng: 105.77995583357745,
+                    },
+                  ];
+
+                  let nearestLibrary = null;
+                  let minDistance = Infinity;
+
+                  testLibraries.forEach((library) => {
+                    const distance = calculateDistance(
+                      latitude,
+                      longitude,
+                      library.lat,
+                      library.lng
+                    );
+                    if (distance < minDistance) {
+                      minDistance = distance;
+                      nearestLibrary = library;
+                    }
+                  });
+
+                  if (nearestLibrary) {
+                    // Di chuyển bản đồ đến thư viện gần nhất
+                    map.setView([nearestLibrary.lat, nearestLibrary.lng], 16);
+
+                    // Hiển thị thông báo
+                    alert(
+                      `Thư viện gần nhất: ${
+                        nearestLibrary.name
+                      }\nKhoảng cách: ${minDistance.toFixed(2)} km`
+                    );
+
+                    console.log(
+                      "✅ Đã tìm thấy thư viện gần nhất:",
+                      nearestLibrary
+                    );
+                  } else {
+                    alert("Không tìm thấy thư viện nào gần bạn!");
+                  }
+                },
+                (error) => {
+                  console.error(
+                    "❌ Lỗi khi lấy vị trí cho thư viện gần nhất:",
+                    error
+                  );
+                  alert("Không thể lấy vị trí hiện tại.");
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+              );
+            });
+
+            console.log(
+              "✅ Đã thêm event listener cho nút 'Thư viện gần nhất'"
+            );
+          }
+
+          // Hàm tính khoảng cách
+          function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Bán kính Trái Đất (km)
+            const dLat = ((lat2 - lat1) * Math.PI) / 180;
+            const dLon = ((lon2 - lon1) * Math.PI) / 180;
+            const a =
+              Math.sin(dLat / 2) ** 2 +
+              Math.cos((lat1 * Math.PI) / 180) *
+                Math.cos((lat2 * Math.PI) / 180) *
+                Math.sin(dLon / 2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+          }
+                     
+
+          // Hàm ước tính thời gian di chuyển
+          function estimateTravelTime(distance) {
+            // Tốc độ trung bình: đi bộ 5 km/h, xe máy 30 km/h
+            const walkingSpeed = 5; // km/h
+            const motorbikeSpeed = 30; // km/h
+            
+            const walkingTime = (distance / walkingSpeed) * 60; // phút
+            const motorbikeTime = (distance / motorbikeSpeed) * 60; // phút
+            
+            console.log(`⏱️ Thời gian ước tính: Đi bộ ${Math.round(walkingTime)} phút, Xe máy ${Math.round(motorbikeTime)} phút`);
+            
+            return {
+              walking: walkingTime,
+              motorbike: motorbikeTime
+            };
+          }
+
+          // Thêm chức năng "Thư viện gần nhất"
+
+          // Xử lý nút "Bộ lọc"
+          const filterButton = document.getElementById("filter-button");
+          if (filterButton) {
+            filterButton.addEventListener("click", () => {
+              console.log("🔍 Người dùng nhấn nút 'Bộ lọc'");
+              // Mở modal bộ lọc
+              const filterModal = new bootstrap.Modal(
+                document.getElementById("filterModal")
+              );
+              filterModal.show();
+            });
+          }
+
+          // Xử lý nút "Áp dụng bộ lọc"
+          const applyFilterButton = document.getElementById("apply-filter");
+          if (applyFilterButton) {
+            applyFilterButton.addEventListener("click", () => {
+              console.log("✅ Người dùng nhấn nút 'Áp dụng bộ lọc'");
+              applyFilters();
+            });
+          }
+
+          // Xử lý nút "Đặt lại bộ lọc"
+          const resetFilterButton = document.getElementById("reset-filter");
+          if (resetFilterButton) {
+            resetFilterButton.addEventListener("click", () => {
+              console.log("🔄 Người dùng nhấn nút 'Đặt lại bộ lọc'");
+              resetFilters();
+            });
+          }
+
+          // Xử lý nút "Đóng" modal bộ lọc
+          const closeFilterButton = document.querySelector(
+            "#filterModal .btn-secondary"
+          );
+          if (closeFilterButton) {
+            closeFilterButton.addEventListener("click", () => {
+              console.log("❌ Người dùng đóng modal bộ lọc");
+            });
+          }
+
+          // Hàm đặt lại bộ lọc
+          function resetFilters() {
+            console.log("🔄 Đang đặt lại bộ lọc...");
+
+            // Reset tất cả checkbox về false
+            document.getElementById("filter-wifi").checked = false;
+            document.getElementById("filter-phong-doc").checked = false;
+            document.getElementById("filter-canteen").checked = false;
+            document.getElementById("filter-dieu-hoa").checked = false;
+
+            // Reset select về giá trị mặc định
+            document.getElementById("filter-phanloai").value = "";
+
+            // Reset input text về rỗng
+            document.getElementById("filter-genre").value = "";
+            document.getElementById("filter-book-name").value = "";
+
+            console.log("✅ Đã đặt lại tất cả bộ lọc");
+          }
+
+          // Hàm áp dụng bộ lọc
+          function applyFilters() {
+            console.log("🔍 Đang áp dụng bộ lọc...");
+
+            try {
+              // Lấy giá trị từ các input bộ lọc
+              const wifiFilter = document.getElementById("filter-wifi").checked;
+              const phongDocFilter =
+                document.getElementById("filter-phong-doc").checked;
+              const canteenFilter =
+                document.getElementById("filter-canteen").checked;
+              const dieuHoaFilter =
+                document.getElementById("filter-dieu-hoa").checked;
+              const phanLoaiFilter =
+                document.getElementById("filter-phanloai").value;
+              const genreFilter = document
+                .getElementById("filter-genre")
+                .value.trim()
+                .toLowerCase();
+              const bookNameFilter = document
+                .getElementById("filter-book-name")
+                .value.trim()
+                .toLowerCase();
+
+              // Tạo tóm tắt bộ lọc để hiển thị
+              let filterSummary = "🎯 BỘ LỌC ĐÃ CHỌN:\n";
+              if (wifiFilter) filterSummary += "✅ Wifi\n";
+              if (phongDocFilter) filterSummary += "✅ Phòng đọc\n";
+              if (canteenFilter) filterSummary += "✅ Canteen\n";
+              if (dieuHoaFilter) filterSummary += "✅ Điều hòa\n";
+              if (phanLoaiFilter)
+                filterSummary += `✅ Loại: ${phanLoaiFilter}\n`;
+              if (genreFilter) filterSummary += `✅ Thể loại: ${genreFilter}\n`;
+              if (bookNameFilter)
+                filterSummary += `✅ Tên sách: ${bookNameFilter}\n`;
+
+              console.log(filterSummary);
+              console.log(" Giá trị bộ lọc chi tiết:", {
+                wifi: wifiFilter,
+                phongDoc: phongDocFilter,
+                canteen: canteenFilter,
+                dieuHoa: dieuHoaFilter,
+                phanLoai: phanLoaiFilter,
+                genre: genreFilter,
+                bookName: bookNameFilter,
+              });
+
+              // Kiểm tra xem có bộ lọc nào được chọn không
+              const hasFilters =
+                wifiFilter ||
+                phongDocFilter ||
+                canteenFilter ||
+                dieuHoaFilter ||
+                phanLoaiFilter ||
+                genreFilter ||
+                bookNameFilter;
+
+              if (!hasFilters) {
+                alert("Vui lòng chọn ít nhất một tiêu chí lọc!");
+                return;
+              }
+
+              // Hiển thị loading
+              const applyButton = document.getElementById("apply-filter");
+              const originalText = applyButton.innerHTML;
+              applyButton.innerHTML =
+                '<i class="bi bi-hourglass-split spin"></i> Đang lọc...';
+              applyButton.disabled = true;
+
+              // Tải dữ liệu và áp dụng bộ lọc
+              fetch("/data")
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                  }
+                  return response.json();
+                })
+                .then((data) => {
+                  console.log("📊 Dữ liệu nhận được:", data);
+
+                  if (data && data.features && Array.isArray(data.features)) {
+                    const filteredLibraries = filterLibraries(data.features, {
+                      wifi: wifiFilter,
+                      phongDoc: phongDocFilter,
+                      canteen: canteenFilter,
+                      dieuHoa: dieuHoaFilter,
+                      phanLoai: phanLoaiFilter,
+                      genre: genreFilter,
+                      bookName: bookNameFilter,
+                    });
+
+                    console.log(
+                      `🔍 Kết quả lọc: ${filteredLibraries.length} thư viện`
+                    );
+
+                    if (filteredLibraries.length > 0) {
+                      showFilteredResults(filteredLibraries);
+                      // Đóng modal bộ lọc
+                      const filterModal = bootstrap.Modal.getInstance(
+                        document.getElementById("filterModal")
+                      );
+                      if (filterModal) {
+                        filterModal.hide();
+                      }
+                    } else {
+                      alert(
+                        "Không tìm thấy thư viện nào phù hợp với bộ lọc đã chọn!"
+                      );
+                    }
+                  } else {
+                    console.error("❌ Dữ liệu không hợp lệ:", data);
+                    alert("Dữ liệu thư viện không hợp lệ!");
+                  }
+                })
+                .catch((error) => {
+                  console.error("❌ Lỗi khi áp dụng bộ lọc:", error);
+                  alert(`Có lỗi xảy ra khi áp dụng bộ lọc: ${error.message}`);
+                })
+                .finally(() => {
+                  // Khôi phục nút
+                  applyButton.innerHTML = originalText;
+                  applyButton.disabled = false;
+                });
+            } catch (error) {
+              console.error("❌ Lỗi trong hàm applyFilters:", error);
+              alert(`Lỗi: ${error.message}`);
+            }
+          }
+
+          // Hàm lọc thư viện theo tiêu chí
+          function filterLibraries(libraries, filters) {
+            console.log(" Bắt đầu lọc thư viện với tiêu chí:", filters);
+            console.log(" Tổng số thư viện cần lọc:", libraries.length);
+
+            const filtered = libraries.filter((library) => {
+              const properties = library.properties;
+
+              // Debug: Log thông tin thư viện đang lọc
+              console.log(` Đang lọc thư viện: ${properties.TenThuVien}`, {
+                Wifi: properties.Wifi,
+                PhongDoc: properties.PhongDoc,
+                Canteen: properties.Canteen,
+                DieuHoa: properties.DieuHoa,
+                phanloai: properties.phanloai,
+                TheLoaiSach: properties.TheLoaiSach,
+                TenSach: properties.TenSach,
+              });
+
+              // Lọc theo tiện ích
+              if (filters.wifi && !properties.Wifi) {
+                console.log(
+                  `❌ ${properties.TenThuVien} bị loại: Không có Wifi`
+                );
+                return false;
+              }
+              if (filters.phongDoc && !properties.PhongDoc) {
+                console.log(
+                  `❌ ${properties.TenThuVien} bị loại: Không có Phòng đọc`
+                );
+                return false;
+              }
+              if (filters.canteen && !properties.Canteen) {
+                console.log(
+                  `❌ ${properties.TenThuVien} bị loại: Không có Canteen`
+                );
+                return false;
+              }
+              if (filters.dieuHoa && !properties.DieuHoa) {
+                console.log(
+                  `❌ ${properties.TenThuVien} bị loại: Không có Điều hòa`
+                );
+                return false;
+              }
+
+              // Lọc theo loại thư viện
+              if (
+                filters.phanLoai &&
+                properties.phanloai !== filters.phanLoai
+              ) {
+                console.log(
+                  `❌ ${properties.TenThuVien} bị loại: Loại không khớp (${properties.phanloai} !== ${filters.phanLoai})`
+                );
+                return false;
+              }
+
+              // Lọc theo thể loại sách (nếu có dữ liệu)
+              if (filters.genre && properties.TheLoaiSach) {
+                const theLoai = properties.TheLoaiSach.toLowerCase();
+                if (!theLoai.includes(filters.genre)) {
+                  console.log(
+                    `❌ ${properties.TenThuVien} bị loại: Thể loại không khớp (${theLoai} không chứa ${filters.genre})`
+                  );
+                  return false;
+                }
+              }
+
+              // Lọc theo tên sách (nếu có dữ liệu)
+              if (filters.bookName && properties.TenSach) {
+                const tenSach = properties.TenSach.toLowerCase();
+                if (!tenSach.includes(filters.bookName)) {
+                  console.log(
+                    `❌ ${properties.TenThuVien} bị loại: Tên sách không khớp (${tenSach} không chứa ${filters.bookName})`
+                  );
+                  return false;
+                }
+              }
+
+              console.log(
+                `✅ ${properties.TenThuVien} phù hợp với tất cả tiêu chí`
+              );
+              return true;
+            });
+
+            console.log(
+              `🎯 Kết quả lọc: ${filtered.length}/${libraries.length} thư viện phù hợp`
+            );
+            return filtered;
+          }
+
+          // Hàm hiển thị modal kết quả bộ lọc
+          function showFilterResultsModal(message, filteredLibraries) {
+            const modal = new bootstrap.Modal(
+              document.getElementById("filterResultsModal")
+            );
+            const content = document.getElementById("filter-results-content");
+
+            // Tạo HTML cho nội dung modal
+            let html = `
+              <div class="text-center mb-4">
+                <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                <h4 class="text-success mt-2">Tìm kiếm thành công!</h4>
+              </div>
+
+              <div class="alert alert-success">
+                <strong> Tổng số thư viện tìm thấy:</strong> ${filteredLibraries.length}
+              </div>
+            `;
+
+            // Thống kê theo loại thư viện
+            const typeStats = {};
+            filteredLibraries.forEach((lib) => {
+              const type = lib.properties.phanloai || "Không xác định";
+              typeStats[type] = (typeStats[type] || 0) + 1;
+            });
+
+            if (Object.keys(typeStats).length > 0) {
+              html += `
+                <div class="card mb-3">
+                  <div class="card-header bg-primary text-white">
+                    <i class="bi bi-building me-2"></i>Phân loại thư viện
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+              `;
+
+              Object.entries(typeStats).forEach(([type, count]) => {
+                html += `
+                  <div class="col-md-6 mb-2">
+                    <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                      <span><i class="bi bi-tag me-2"></i>${type}</span>
+                      <span class="badge bg-primary">${count}</span>
+                    </div>
+                  </div>
+                `;
+              });
+
+              html += `
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+
+            // Thống kê theo tiện ích
+            const utilityStats = {
+              Wifi: 0,
+              "Phòng đọc": 0,
+              Canteen: 0,
+              "Điều hòa": 0,
+            };
+
+            filteredLibraries.forEach((lib) => {
+              if (lib.properties.Wifi) utilityStats["Wifi"]++;
+              if (lib.properties.PhongDoc) utilityStats["Phòng đọc"]++;
+              if (lib.properties.Canteen) utilityStats["Canteen"]++;
+              if (lib.properties.DieuHoa) utilityStats["Điều hòa"]++;
+            });
+
+            html += `
+              <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                  <i class="bi bi-tools me-2"></i>Tiện ích có sẵn
+                </div>
+                <div class="card-body">
+                  <div class="row">
+            `;
+
+            Object.entries(utilityStats).forEach(([utility, count]) => {
+              if (count > 0) {
+                const iconClass =
+                  utility === "Wifi"
+                    ? "bi-wifi"
+                    : utility === "Phòng đọc"
+                    ? "bi-book"
+                    : utility === "Canteen"
+                    ? "bi-cup-hot"
+                    : "bi-snow";
+                html += `
+                  <div class="col-md-6 mb-2">
+                    <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                      <span><i class="bi ${iconClass} me-2"></i>${utility}</span>
+                      <span class="badge bg-info">${count}</span>
+                    </div>
+                  </div>
+                `;
+              }
+            });
+
+            html += `
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-info">
+                <i class="bi bi-map me-2"></i>
+                <strong>Bản đồ đã được cập nhật để hiển thị ${filteredLibraries.length} thư viện phù hợp!</strong>
+              </div>
+            `;
+
+            content.innerHTML = html;
+            modal.show();
+          }
+
+          // Hàm mượn sách
+          window.borrowBook = function (libraryName, libraryId) {
+            console.log(
+              " Mở modal mượn sách cho thư viện:",
+              libraryName,
+              "ID:",
+              libraryId
+            );
+
+            // Test alert để kiểm tra hàm có được gọi không
+            alert(
+              `🔍 Test: Hàm borrowBook được gọi!\nThư viện: ${libraryName}\nID: ${libraryId}`
+            );
+
+            // Kiểm tra quyền người dùng (chỉ để debug)
+            console.log("🔐 Thông tin người dùng:", {
+              username: '<%= user ? user.username : "Không có" %>',
+              role: '<%= user ? user.role : "Không có" %>',
+            });
+
+            // Debug: kiểm tra xem modal có tồn tại không
+            const modal = document.getElementById("borrowBookModal");
+            if (!modal) {
+              console.error("❌ Không tìm thấy modal mượn sách!");
+              alert("Lỗi: Modal mượn sách không tồn tại!");
+              return;
+            }
+            console.log("✅ Modal mượn sách đã tìm thấy:", modal);
+
+            // Cập nhật tên thư viện trong modal
+            document.getElementById("borrow-library-name").textContent =
+              libraryName;
+
+            // Đặt ngày mượn là hôm nay
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("borrow-date").value = today;
+
+            // Đặt ngày trả dự kiến là 14 ngày sau
+            const returnDate = new Date();
+            returnDate.setDate(returnDate.getDate() + 14);
+            document.getElementById("return-date").value = returnDate
+              .toISOString()
+              .split("T")[0];
+
+            // Hiển thị modal
+            const borrowModal = new bootstrap.Modal(
+              document.getElementById("borrowBookModal")
+            );
+            borrowModal.show();
+          };
+
+          // Xử lý nút gửi yêu cầu mượn sách
+          const submitBorrowButton = document.getElementById("submit-borrow");
+          if (submitBorrowButton) {
+            submitBorrowButton.addEventListener("click", function () {
+              submitBorrowRequest();
+            });
+          }
+
+          // Hàm gửi yêu cầu mượn sách
+          function submitBorrowRequest() {
+            console.log(" Đang gửi yêu cầu mượn sách...");
+
+            // Lấy dữ liệu từ form
+            const formData = {
+              libraryName: document.getElementById("borrow-library-name")
+                .textContent,
+              borrowerName: document
+                .getElementById("borrower-name")
+                .value.trim(),
+              borrowerEmail: document
+                .getElementById("borrower-email")
+                .value.trim(),
+              borrowerPhone: document
+                .getElementById("borrower-phone")
+                .value.trim(),
+              borrowDate: document.getElementById("borrow-date").value,
+              returnDate: document.getElementById("return-date").value,
+              bookCategory: document.getElementById("book-category").value,
+              notes: document.getElementById("borrow-notes").value.trim(),
+              status: "Chờ xử lý",
+              createdAt: new Date().toISOString(),
+            };
+
+            // Kiểm tra dữ liệu bắt buộc
+            if (
+              !formData.borrowerName ||
+              !formData.borrowerEmail ||
+              !formData.borrowerPhone ||
+              !formData.borrowDate ||
+              !formData.returnDate
+            ) {
+              alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
+              return;
+            }
+
+            // Hiển thị loading
+            const submitButton = document.getElementById("submit-borrow");
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML =
+              '<i class="bi bi-hourglass-split spin"></i> Đang gửi...';
+            submitButton.disabled = true;
+
+            // Gửi dữ liệu đến server
+            fetch("/api/borrow-book", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  console.log("✅ Gửi yêu cầu mượn sách thành công:", data);
+
+                  // Hiển thị thông báo thành công
+                  alert(
+                    "✅ Yêu cầu mượn sách đã được gửi thành công!\n\n" +
+                      " Thông tin đã lưu:\n" +
+                      `• ID yêu cầu: ${data.muonSachId}\n` +
+                      `• Thư viện: ${formData.libraryName}\n` +
+                      `• Họ tên: ${formData.borrowerName}\n` +
+                      `• Sách: ${data.bookInfo.name}\n` +
+                      `• Ngày mượn: ${formData.borrowDate}\n` +
+                      `• Ngày trả: ${formData.returnDate}\n\n` +
+                      "🔄 Đang chuyển đến trang quản lý admin..."
+                  );
+
+                  // Đóng modal
+                  const borrowModal = bootstrap.Modal.getInstance(
+                    document.getElementById("borrowBookModal")
+                  );
+                  borrowModal.hide();
+
+                  // Reset form
+                  document.getElementById("borrowBookForm").reset();
+
+                  // Chuyển hướng đến trang admin quản lý mượn sách
+                  setTimeout(() => {
+                    window.location.href =
+                      data.redirectUrl || "/admin/muon_sach";
+                  }, 2000);
+                } else {
+                  console.error("❌ Lỗi khi gửi yêu cầu:", data.message);
+                  alert("❌ Có lỗi xảy ra: " + data.message);
+                }
+              })
+              .catch((error) => {
+                console.error("❌ Lỗi network:", error);
+                alert("❌ Có lỗi kết nối: " + error.message);
+              })
+              .finally(() => {
+                // Khôi phục nút
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+              });
+          }
+
+          // Hàm hiển thị kết quả đã lọc
+          function showFilteredResults(filteredLibraries) {
+            console.log(
+              `✅ Tìm thấy ${filteredLibraries.length} thư viện phù hợp với bộ lọc`
+            );
+
+            // Xóa tất cả markers cũ (giữ lại vị trí hiện tại nếu có)
+            map.eachLayer((layer) => {
+              if (
+                layer instanceof L.Marker &&
+                layer !== currentLocationMarker
+              ) {
+                map.removeLayer(layer);
+              }
+            });
+
+            // Hiển thị thông báo kết quả chi tiết
+            const resultMessage = `Đã tìm thấy ${filteredLibraries.length} thư viện phù hợp với bộ lọc!`;
+            console.log("📢 " + resultMessage);
+
+            // Tạo thông báo chi tiết về kết quả lọc
+            let detailMessage = `🎯 KẾT QUẢ BỘ LỌC:\n\n`;
+            detailMessage += ` Tổng số thư viện tìm thấy: ${filteredLibraries.length}\n\n`;
+
+            // Thống kê theo loại thư viện
+            const typeStats = {};
+            filteredLibraries.forEach((lib) => {
+              const type = lib.properties.phanloai || "Không xác định";
+              typeStats[type] = (typeStats[type] || 0) + 1;
+            });
+
+            if (Object.keys(typeStats).length > 0) {
+              detailMessage += ` Phân loại thư viện:\n`;
+              Object.entries(typeStats).forEach(([type, count]) => {
+                detailMessage += `   • ${type}: ${count} thư viện\n`;
+              });
+              detailMessage += `\n`;
+            }
+
+            // Thống kê theo tiện ích
+            const utilityStats = {
+              Wifi: 0,
+              "Phòng đọc": 0,
+              Canteen: 0,
+              "Điều hòa": 0,
+            };
+
+            filteredLibraries.forEach((lib) => {
+              if (lib.properties.Wifi) utilityStats["Wifi"]++;
+              if (lib.properties.PhongDoc) utilityStats["Phòng đọc"]++;
+              if (lib.properties.Canteen) utilityStats["Canteen"]++;
+              if (lib.properties.DieuHoa) utilityStats["Điều hòa"]++;
+            });
+
+            detailMessage += ` Tiện ích có sẵn:\n`;
+            Object.entries(utilityStats).forEach(([utility, count]) => {
+              if (count > 0) {
+                detailMessage += `   • ${utility}: ${count} thư viện\n`;
+              }
+            });
+
+            detailMessage += `\n Bản đồ đã được cập nhật để hiển thị kết quả!`;
+
+            // Hiển thị markers cho kết quả đã lọc
+            const filterIcon = L.icon({
+              iconUrl: "/images/igg.png",
+              iconSize: [60, 60],
+              iconAnchor: [30, 60],
+              popupAnchor: [0, -50],
+            });
+
+            let bounds = L.latLngBounds();
+
+            filteredLibraries.forEach((library) => {
+              const coords = library.geometry.coordinates;
+              const properties = library.properties;
+
+              const marker = L.marker([coords[1], coords[0]], {
+                icon: filterIcon,
+              }).addTo(map);
+
+              // Tạo popup với thông tin thư viện
+              const popupContent = `
+                <div style="min-width: 250px;">
+                  <h6 style="color: #0d6efd; margin-bottom: 10px;">
+                    <i class="bi bi-building me-2"></i>${properties.TenThuVien}
+                  </h6>
+                  ${
+                    properties.Anh360
+                      ? `
+                    <div style="margin-bottom: 10px; text-align: center;">
+                      <img src="${properties.Anh360}" alt="${properties.TenThuVien}"
+                           style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
+                    </div>
+                  `
+                      : ""
+                  }
+                  <p style="margin-bottom: 8px;">
+                    <i class="bi bi-geo-alt text-success me-2"></i>${
+                      properties.DiaChi
+                    }
+                  </p>
+                  <p style="margin-bottom: 8px;">
+                    <i class="bi bi-tag text-primary me-2"></i>${
+                      properties.phanloai || "Không xác định"
+                    }
+                  </p>
+                  <div style="font-size: 12px; color: #6c757d; margin-bottom: 15px;">
+                    <span class="me-3">
+                      <i class="bi bi-wifi ${
+                        properties.Wifi ? "text-success" : "text-muted"
+                      }"></i> Wifi
+                    </span>
+                    <span class="me-3">
+                      <i class="bi bi-book ${
+                        properties.PhongDoc ? "text-info" : "text-muted"
+                      }"></i> Phòng đọc
+                    </span>
+                    <span class="me-3">
+                      <i class="bi bi-cup-hot ${
+                        properties.Canteen ? "text-warning" : "text-muted"
+                      }"></i> Canteen
+                    </span>
+                    <span>
+                      <i class="bi bi-snow ${
+                        properties.DieuHoa ? "text-primary" : "text-muted"
+                      }"></i> Điều hòa
+                    </span>
+                  </div>
+                  <div class="d-flex gap-2">
+                                          <button class="btn btn-sm btn-outline-primary" onclick="showDirections(${
+                        coords[1]
+                      }, ${coords[0]}, '${properties.TenThuVien}')">
+                        <i class="bi bi-route"></i> Chỉ đường
+                      </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="borrowBook('${
+                      properties.TenThuVien
+                    }', ${
+                properties.ID
+              })" style="border: 2px solid #28a745; font-weight: bold; background-color: #d4edda;">
+                      <i class="bi bi-book"></i> Mượn sách
+                    </button>
+                    ${
+                      properties.Anh360
+                        ? `
+                      <button class="btn btn-sm btn-outline-info" onclick="view360Image('${properties.Anh360}', '${properties.TenThuVien}')">
+                        <i class="bi bi-camera"></i> 360°
+                      </button>
+                    `
+                        : ""
+                    }
+                  </div>
+                </div>
+              `;
+
+              marker.bindPopup(popupContent);
+              bounds.extend([coords[1], coords[0]]);
+            });
+
+            // Di chuyển bản đồ để hiển thị tất cả kết quả
+            if (bounds.isValid()) {
+              map.fitBounds(bounds, { padding: [20, 20] });
+            }
+
+            // Hiển thị modal kết quả chi tiết
+            setTimeout(() => {
+              showFilterResultsModal(detailMessage, filteredLibraries);
+            }, 500);
+          }
+
+          // Hàm hiển thị modal đánh giá
+          function showRatingModal(libraryId, libraryName) {
+            console.log("⭐ Mở modal đánh giá:", { libraryId, libraryName });
+
+            const modal = document.getElementById("ratingModal");
+            const libraryNameElement =
+              document.getElementById("ratingLibraryName");
+            const libraryIdInput = document.getElementById("ratingLibraryId");
+
+            if (!modal || !libraryNameElement || !libraryIdInput) {
+              console.error("❌ Không tìm thấy các element modal đánh giá");
+              alert("Lỗi: Modal đánh giá không tồn tại!");
+              return;
+            }
+
+            libraryNameElement.textContent = libraryName;
+            libraryIdInput.value = libraryId;
+
+            // Reset form
+            const form = document.getElementById("ratingForm");
+            if (form) {
+              form.reset();
+              libraryIdInput.value = libraryId; // Đặt lại ID sau khi reset
+            }
+
+            // Reset stars
+            const stars = document.querySelectorAll(
+              '.rating-stars input[type="radio"]'
+            );
+            stars.forEach((star) => (star.checked = false));
+
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+
+            console.log("✅ Modal đánh giá đã mở");
+          }
+
+          // Sửa hàm submitRating (dòng 2571-2657) - thêm window.
+          window.submitRating = async function () {
+            console.log("⭐ Bắt đầu gửi đánh giá...");
+
+            const form = document.getElementById("ratingForm");
+            if (!form) {
+              console.error("❌ Không tìm thấy form đánh giá");
+              alert("Lỗi: Form đánh giá không tồn tại!");
+              return;
+            }
+
+            const formData = new FormData(form);
+            const ratingData = {
+              libraryId: formData.get("libraryId"),
+              rating: formData.get("rating"),
+              userName: formData.get("userName"),
+              comment: formData.get("comment"),
+            };
+
+            console.log("⭐ Dữ liệu đánh giá:", ratingData);
+
+            // Kiểm tra dữ liệu bắt buộc
+            if (
+              !ratingData.libraryId ||
+              !ratingData.rating ||
+              !ratingData.userName
+            ) {
+              alert("❌ Vui lòng điền đầy đủ thông tin bắt buộc!");
+              return;
+            }
+
+            // Validate rating
+            const rating = parseInt(ratingData.rating);
+            if (rating < 1 || rating > 5) {
+              alert("❌ Điểm đánh giá phải từ 1 đến 5 sao!");
+              return;
+            }
+
+            // Tìm nút submit và hiển thị loading
+            const submitButton = document.querySelector(
+              "#ratingModal .btn-warning"
+            );
+            let originalText = "";
+
+            if (submitButton) {
+              originalText = submitButton.innerHTML;
+              submitButton.innerHTML =
+                '<i class="bi bi-hourglass-split spin"></i> Đang gửi...';
+              submitButton.disabled = true;
+            }
+
+            try {
+              const response = await fetch("/api/rate-library", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(ratingData),
+              });
+
+              const result = await response.json();
+              console.log("📡 Kết quả API:", result);
+
+              if (result.success) {
+                alert(
+                  "✅ Đánh giá thành công!\nCảm ơn bạn đã đánh giá thư viện!"
+                );
+
+                // Đóng modal
+                const modal = bootstrap.Modal.getInstance(
+                  document.getElementById("ratingModal")
+                );
+                if (modal) {
+                  modal.hide();
+                }
+
+                // Cập nhật hiển thị đánh giá trên bản đồ
+                updateLibraryRating(ratingData.libraryId, ratingData.rating);
+              } else {
+                alert("❌ Có lỗi xảy ra: " + result.message);
+              }
+            } catch (error) {
+              console.error("❌ Lỗi khi gửi đánh giá:", error);
+              alert("❌ Có lỗi kết nối: " + error.message);
+            } finally {
+              // Khôi phục nút
+              if (submitButton && originalText) {
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+              }
+            }
+          };
+
+          // Hàm cập nhật hiển thị đánh giá trên bản đồ
+          function updateLibraryRating(libraryId, newRating) {
+            // Tìm marker tương ứng và cập nhật popup
+            map.eachLayer((layer) => {
+              if (layer instanceof L.Marker && layer.libraryId === libraryId) {
+                const popup = layer.getPopup();
+                if (popup) {
+                  // Cập nhật nội dung popup với đánh giá mới
+                  const popupContent = popup.getContent();
+                  // Có thể cập nhật popup content ở đây nếu cần
+                }
+              }
+            });
+          }
+
+          // Cập nhật hàm tạo popup để thêm nút đánh giá
+          function createLibraryPopup(library) {
+            const ratingStars = "⭐".repeat(library.rating || 0);
+            const ratingText = library.rating
+              ? `${ratingStars} (${library.rating}/5)`
+              : "Chưa có đánh giá";
+
+            return `
+                <div class="library-popup">
+                    <h5 class="fw-bold text-primary">${library.ten_thuvien}</h5>
+                    <p class="mb-2"><i class="bi bi-geo-alt"></i> ${library.dia_chi}</p>
+                    <p class="mb-2"><i class="bi bi-telephone"></i> ${library.so_dien_thoai}</p>
+                    <p class="mb-2"><i class="bi bi-envelope"></i> ${library.email}</p>
+                    <p class="mb-2"><i class="bi bi-star"></i> ${ratingText}</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-sm" onclick="showLibraryDetails('${library.id_thuvien}')">
+                            <i class="bi bi-info-circle"></i> Xem chi tiết
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="showRatingModal('${library.id_thuvien}', '${library.ten_thuvien}')">
+                            <i class="bi bi-star"></i> Đánh giá
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="showBorrowModal('${library.id_thuvien}', '${library.ten_thuvien}')">
+                            <i class="bi bi-book"></i> Mượn sách
+                        </button>
+                    </div>
+                </div>
+            `;
+          }
+
+          // Thêm hàm openRatingModal để tương thích (sau dòng 2535)
+          window.openRatingModal = function (libraryId, libraryName) {
+            showRatingModal(libraryId, libraryName);
+          };
+
+          // Thêm hàm xem sách thư viện (dùng modal sẵn có #booksModal)
+          window.viewLibraryBooks = function (libraryId, libraryName) {
+            console.log("📚 Xem sách thư viện:", libraryId, libraryName);
+            const booksModalEl = document.getElementById("booksModal");
+            const booksContent = document.getElementById("books-content");
+            if (!booksModalEl || !booksContent) {
+              console.error("❌ Không tìm thấy modal #booksModal hoặc #books-content");
+              return;
+            }
+            booksContent.innerHTML = `
+              <div class="text-center">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Đang tải...</span>
+                </div>
+              </div>
+            `;
+            const bsModal = new bootstrap.Modal(booksModalEl);
+            bsModal.show();
+            loadLibraryBooksForMap(libraryId);
+          };
+
+          // Hàm tải sách cho bản đồ
+          async function loadLibraryBooksForMap(libraryId) {
+            const content = document.getElementById("books-content");
+
+            try {
+              const response = await fetch(`/admin/thu_vien/books/${libraryId}`);
+              const data = await response.json();
+
+              if (data.success) {
+                let html = `
+                  <div class="row mb-3">
+                    <div class="col-12">
+                      <h6><i class="bi bi-building me-2"></i>Thư viện: ${data.library.ten_thuvien}</h6>
+                      <p class="text-muted"><i class="bi bi-geo-alt me-2"></i>${data.library.dia_chi}</p>
+                    </div>
+                  </div>
+                `;
+
+                if (data.books.length === 0) {
+                  html += `
+                    <div class="alert alert-info text-center">
+                      <i class="bi bi-info-circle me-2"></i>
+                      Thư viện này chưa có sách nào
+                    </div>
+                  `;
+                } else {
+                  html += `
+                    <div class="table-responsive">
+                      <table class="table table-hover table-sm">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Tên sách</th>
+                            <th>Tác giả</th>
+                            <th>Thể loại</th>
+                            <th>Số lượng</th>
+                            <th>File số</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                  `;
+
+                  data.books.forEach((book) => {
+                    html += `
+                      <tr>
+                        <td><strong>${book.ten_sach}</strong></td>
+                        <td>${book.tac_gia || "Không có"}</td>
+                        <td>${book.ten_theloai || "Không có"}</td>
+                        <td>
+                          <span class="badge bg-primary">${
+                            book.so_luong_trong_thu_vien || 0
+                          }</span>
+                        </td>
+                        <td>
+                          ${
+                            book.digital_file
+                              ? `<a href="${book.digital_file}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                              <i class="bi bi-file-earmark-pdf"></i>
+                            </a>`
+                              : '<span class="text-muted">Không có</span>'
+                          }
+                        </td>
+                      </tr>
+                    `;
+                  });
+
+                  html += `
+                        </tbody>
+                      </table>
+                    </div>
+                  `;
+                }
+
+                content.innerHTML = html;
+              } else {
+                content.innerHTML = `
+                  <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Lỗi: ${data.error}
+                  </div>
+                `;
+              }
+            } catch (error) {
+              console.error("❌ Lỗi khi tải sách:", error);
+              content.innerHTML = `
+                <div class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  Lỗi kết nối: ${error.message}
+                </div>
+              `;
+            }
+          }
+
+          // Mở trang chỉnh sửa thư viện (dành cho admin)
+          window.openAdminEdit = function (libraryId) {
+            try {
+              if (!libraryId) return;
+              window.location.href = `/admin/thu_vien/update/${libraryId}`;
+            } catch (e) {
+              console.error('Không thể mở trang chỉnh sửa:', e);
+            }
+          }
+
+          // Hàm tải nhanh danh sách sách để hiển thị trong popup
+          async function fetchAndRenderLibraryBooksPreview(libraryId, containerId) {
+            try {
+              const container = document.getElementById(containerId);
+              if (!container) return;
+              const res = await fetch(`/admin/thu_vien/books/${libraryId}`);
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              const data = await res.json();
+              if (!data.success) {
+                container.innerHTML = `<span class="text-danger">Lỗi tải sách</span>`;
+                return;
+              }
+              const books = Array.isArray(data.books) ? data.books : [];
+              if (books.length === 0) {
+                container.innerHTML = `<span class="text-muted">Chưa có sách</span>`;
+                return;
+              }
+              const top = books.slice(0, 5);
+              const list = top
+                .map(
+                  (b) => `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <div style="max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <strong>${escapeHTML(b.ten_sach || '')}</strong>
+                        <small class="text-muted">${escapeHTML(b.tac_gia || '')}</small>
+                      </div>
+                      <span class="badge bg-primary">${b.so_luong || b.so_luong_trong_thu_vien || 0}</span>
+                    </div>`
+                )
+                .join("");
+              container.innerHTML = `
+                <div style="margin-bottom:6px">
+                  <strong>Tổng sách:</strong> <span class="badge bg-success">${books.length}</span>
+                </div>
+                ${list}
+                ${books.length > 5 ? `<div class="text-muted" style="font-size:12px">...và còn ${books.length - 5} sách khác</div>` : ''}
+              `;
+            } catch (e) {
+              const container = document.getElementById(containerId);
+              if (container) container.innerHTML = `<span class="text-danger">Lỗi kết nối</span>`;
+              console.error('Lỗi preview sách:', e);
+            }
+          }
+
+          // Utility escape HTML để tránh chèn ký tự đặc biệt vào popup
+          function escapeHTML(value) {
+            const str = String(value ?? "");
+            return str
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;");
+          }
+
+          // Thêm hàm hiển thị sách của thư viện
+          async function showLibraryBooks(libraryId, libraryName) {
+            try {
+              console.log("📚 Hiển thị sách thư viện:", {
+                libraryId,
+                libraryName,
+              });
+
+              const response = await fetch(
+                `/admin/thu_vien/books/${libraryId}`
+              );
+              const data = await response.json();
+
+              if (data.success) {
+                displayBooksModal(data.library, data.books);
+              } else {
+                alert("Lỗi: " + data.message);
+              }
+            } catch (error) {
+              console.error("❌ Lỗi khi lấy sách thư viện:", error);
+              alert("Có lỗi xảy ra khi lấy sách thư viện");
+            }
+          }
+
+          // Hàm hiển thị modal sách
+          function displayBooksModal(library, books) {
+            const modal = document.getElementById("booksModal");
+            if (!modal) {
+              // Tạo modal nếu chưa có
+              createBooksModal();
+            }
+
+            const modalTitle = document.getElementById("booksModalTitle");
+            const booksList = document.getElementById("booksList");
+
+            modalTitle.textContent = `Sách của ${library.ten_thuvien}`;
+
+            if (books.length === 0) {
+              booksList.innerHTML =
+                '<p class="text-muted">Thư viện chưa có sách nào</p>';
+            } else {
+              booksList.innerHTML = books
+                .map(
+                  (book) => `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6 class="card-title">${book.ten_sach}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    Tác giả: ${book.tac_gia} | 
+                                    Năm: ${book.nam_xuat_ban} | 
+                                    Thể loại: ${book.ten_theloai}
+                                </small>
+                            </p>
+                            <div class="row">
+                                <div class="col-6">
+                                    <span class="badge bg-primary">Số lượng: ${book.so_luong}</span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="badge bg-success">Tổng: ${book.tongsl}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                )
+                .join("");
+            }
+
+            // Hiển thị modal
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+          }
+
+          // Tạo modal sách
+          function createBooksModal() {
+            const modalHTML = `
+                <div class="modal fade" id="booksModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="booksModalTitle">Sách của thư viện</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="booksList"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML("beforeend", modalHTML);
+          }
+        } catch (error) {
+          console.error("❌ Lỗi khi khởi tạo bản đồ:", error);
+          alert("Có lỗi xảy ra khi khởi tạo bản đồ!");
+        }
+      } else {
+        console.error("❌ Leaflet chưa được load");
+        alert("Lỗi: Leaflet chưa được load!");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cửa Hàng Sách - Mua Sách Online</title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+        --accent-color: #f093fb;
+        --text-dark: #2d3748;
+        --text-light: #718096;
+        --bg-light: #f7fafc;
+        --success-color: #48bb78;
+        --danger-color: #f56565;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-dark);
+        /* =========================
+           🎨 3D ANIMATED BACKGROUND
+           Copy từ đây...
+           ========================= */
+        position: relative;
+        overflow-x: hidden;
+        background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+      }
+
+      /* Animated gradient background */
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      /* Floating particles container */
+      .particles-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      /* Individual particle */
+      .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        animation: float 20s infinite ease-in-out;
+        backdrop-filter: blur(2px);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      }
+
+      /* Floating animation */
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0) translateX(0) scale(1) rotate(0deg);
+          opacity: 0.7;
+        }
+        25% {
+          transform: translateY(-100px) translateX(50px) scale(1.1) rotate(90deg);
+          opacity: 1;
+        }
+        50% {
+          transform: translateY(-200px) translateX(-50px) scale(0.9) rotate(180deg);
+          opacity: 0.5;
+        }
+        75% {
+          transform: translateY(-100px) translateX(100px) scale(1.2) rotate(270deg);
+          opacity: 0.8;
+        }
+      }
+
+      /* Geometric shapes */
+      .geo-shape {
+        position: absolute;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        animation: rotate3d 30s infinite linear;
+      }
+
+      @keyframes rotate3d {
+        0% { transform: rotate(0deg) scale(1); }
+        50% { transform: rotate(180deg) scale(1.2); }
+        100% { transform: rotate(360deg) scale(1); }
+      }
+
+      /* Content wrapper - đảm bảo nội dung nằm trên background */
+      .content-wrapper {
+        position: relative;
+        z-index: 1;
+      }
+      /* =========================
+         ... đến đây để copy sang trang khác
+         ========================= */
+
+      /* Header */
+      .shop-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 1.5rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .shop-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .shop-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+      }
+
+      /* Search và Filter */
+      .search-filter-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .search-box {
+        position: relative;
+      }
+
+      .search-box input {
+        padding-left: 3rem;
+        border-radius: 25px;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s;
+      }
+
+      .search-box input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+      }
+
+      /* Book Card */
+      .book-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .book-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+        border-color: var(--primary-color);
+      }
+
+      .book-image {
+        width: 100%;
+        height: 280px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 4rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .book-image::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.3;
+      }
+
+      .book-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--success-color);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .book-badge.out-of-stock {
+        background: var(--danger-color);
+      }
+
+      .book-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .book-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+        min-height: 3.5rem;
+      }
+
+      .book-author {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .book-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .book-meta span {
+        font-size: 0.85rem;
+        color: var(--text-light);
+      }
+
+      .book-category {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+
+      .book-price-section {
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 2px solid #e2e8f0;
+      }
+
+      .book-price {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .book-price-old {
+        font-size: 1rem;
+        color: var(--text-light);
+        text-decoration: line-through;
+        margin-left: 0.5rem;
+      }
+
+      .book-stock {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+      }
+
+      .book-stock.in-stock {
+        color: var(--success-color);
+        font-weight: 600;
+      }
+
+      .book-stock.low-stock {
+        color: #ed8936;
+        font-weight: 600;
+      }
+
+      .book-stock.out-of-stock {
+        color: var(--danger-color);
+        font-weight: 600;
+      }
+
+      .btn-buy {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        border: none;
+      }
+
+      .btn-buy-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+      }
+
+      .btn-buy-primary:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+      }
+
+      .btn-buy-secondary {
+        background: #e2e8f0;
+        color: var(--text-dark);
+      }
+
+      .btn-buy-secondary:hover {
+        background: #cbd5e0;
+        color: var(--text-dark);
+      }
+
+      .btn-buy:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Filter buttons */
+      .filter-btn {
+        border-radius: 20px;
+        padding: 0.5rem 1.5rem;
+        border: 2px solid #e2e8f0;
+        background: white;
+        color: var(--text-dark);
+        transition: all 0.3s;
+        font-weight: 500;
+      }
+
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-color: transparent;
+      }
+
+      /* Empty state */
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .empty-state i {
+        font-size: 5rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+      }
+
+      /* Stats */
+      .stats-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s;
+      }
+
+      .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+      }
+
+      .stats-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 0;
+      }
+
+      .stats-card p {
+        color: var(--text-light);
+        margin: 0.5rem 0 0 0;
+        font-size: 0.9rem;
+      }
+
+      /* Cart badge */
+      .cart-badge {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        cursor: pointer;
+        z-index: 1000;
+        transition: all 0.3s;
+      }
+
+      .cart-badge:hover {
+        transform: scale(1.1);
+      }
+
+      .cart-badge .badge-count {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--danger-color);
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .shop-header h1 {
+          font-size: 1.5rem;
+        }
+
+        .book-image {
+          height: 200px;
+        }
+
+        .book-title {
+          font-size: 1.1rem;
+          min-height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- =========================
+         🎨 3D ANIMATED BACKGROUND HTML
+         Copy từ đây...
+         ========================= -->
+    <!-- Floating particles background -->
+    <div class="particles-bg" id="particles-container"></div>
+
+    <!-- Content wrapper -->
+    <div class="content-wrapper">
+    <!-- ... đến đây (nhớ đóng </div> ở cuối body) -->
+    
+    <!-- Header -->
+    <div class="shop-header">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1><i class="bi bi-book"></i> Cửa Hàng Sách Online</h1>
+            <p>Khám phá thế giới tri thức với hàng ngàn đầu sách chất lượng</p>
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-light me-2" onclick="showMyOrders()">
+              <i class="bi bi-box-seam"></i> Đơn Hàng Của Tôi
+            </button>
+            <a href="/" class="btn btn-light">
+              <i class="bi bi-house-door"></i> Trang Chủ
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container my-4">
+      <!-- Stats -->
+      <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+          <div class="stats-card">
+            <h3 id="total-books"><%= books ? books.length : 0 %></h3>
+            <p>Tổng số sách</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+          <div class="stats-card">
+            <h3 id="total-categories"><%= categories ? categories.length : 0 %></h3>
+            <p>Thể loại</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+          <div class="stats-card">
+            <h3 id="in-stock-books">0</h3>
+            <p>Còn hàng</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+          <div class="stats-card">
+            <h3 id="cart-count">0</h3>
+            <p>Giỏ hàng</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search và Filter -->
+      <div class="search-filter-section">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input
+                type="text"
+                class="form-control form-control-lg"
+                id="search-input"
+                placeholder="Tìm kiếm sách theo tên, tác giả..."
+              />
+            </div>
+          </div>
+          <div class="col-md-4">
+            <select class="form-select form-select-lg" id="sort-select">
+              <option value="">Sắp xếp theo</option>
+              <option value="price-asc">Giá: Thấp → Cao</option>
+              <option value="price-desc">Giá: Cao → Thấp</option>
+              <option value="name-asc">Tên: A → Z</option>
+              <option value="name-desc">Tên: Z → A</option>
+              <option value="newest">Mới nhất</option>
+            </select>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn filter-btn active" data-category="all">
+                <i class="bi bi-grid"></i> Tất cả
+              </button>
+              <% if (categories && categories.length > 0) { %>
+                <% categories.forEach(function(category) { %>
+                  <button class="btn filter-btn" data-category="<%= category.id_theloai %>">
+                    <%= category.ten_theloai %>
+                  </button>
+                <% }); %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danh sách sách -->
+      <div id="books-container">
+        <% if (!books || books.length === 0) { %>
+          <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h3>Chưa có sách nào</h3>
+            <p class="text-muted">Vui lòng quay lại sau.</p>
+          </div>
+        <% } else { %>
+          <div class="row" id="books-grid">
+            <% books.forEach(function(book) { %>
+              <div class="col-lg-3 col-md-4 col-sm-6 mb-4 book-item" 
+                   data-category="<%= book.id_theloai %>"
+                   data-name="<%= (book.ten_sach || '').toLowerCase() %>"
+                   data-author="<%= (book.tac_gia || '').toLowerCase() %>"
+                   data-price="<%= book.gia || book.don_gia || 0 %>">
+                <div class="book-card">
+                  <div class="book-image">
+                    <i class="bi bi-book"></i>
+                    <% if (book.so_luong > 0) { %>
+                      <span class="book-badge">Còn hàng</span>
+                    <% } else { %>
+                      <span class="book-badge out-of-stock">Hết hàng</span>
+                    <% } %>
+                  </div>
+                  <div class="book-content">
+                    <h5 class="book-title"><%= book.ten_sach %></h5>
+                    <p class="book-author">
+                      <i class="bi bi-person"></i> <%= book.tac_gia || 'Chưa có tác giả' %>
+                    </p>
+                    <div class="book-meta">
+                      <span><i class="bi bi-calendar"></i> <%= book.nam_xuat_ban || 'N/A' %></span>
+                    </div>
+                    <span class="book-category"><%= book.ten_theloai || 'Chưa phân loại' %></span>
+                    <div class="book-price-section">
+                      <div class="book-price">
+                        <%= typeof book.gia !== 'undefined' && book.gia !== null 
+                          ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.gia)
+                          : typeof book.don_gia !== 'undefined' && book.don_gia !== null
+                          ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.don_gia)
+                          : 'Liên hệ' %>
+                        <% if (book.gia_goc && book.gia_goc > (book.gia || book.don_gia || 0)) { %>
+                          <span class="book-price-old">
+                            <%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.gia_goc) %>
+                          </span>
+                        <% } %>
+                      </div>
+                      <p class="book-stock <%= book.so_luong > 10 ? 'in-stock' : (book.so_luong > 0 ? 'low-stock' : 'out-of-stock') %>">
+                        <% if (book.so_luong > 10) { %>
+                          <i class="bi bi-check-circle"></i> Còn <%= book.so_luong %> quyển
+                        <% } else if (book.so_luong > 0) { %>
+                          <i class="bi bi-exclamation-triangle"></i> Còn <%= book.so_luong %> quyển (Sắp hết)
+                        <% } else { %>
+                          <i class="bi bi-x-circle"></i> Hết hàng
+                        <% } %>
+                      </p>
+                      <button 
+                        class="btn btn-buy <%= book.so_luong > 0 ? 'btn-buy-primary' : 'btn-buy-secondary' %>"
+                        data-book-id="<%= book.id_sach %>"
+                        data-book-name="<%= book.ten_sach %>"
+                        data-book-price="<%= book.gia || book.don_gia || 0 %>"
+                        data-book-stock="<%= book.so_luong %>"
+                        onclick="addToCart(this.dataset.bookId, this.dataset.bookName, parseFloat(this.dataset.bookPrice), parseInt(this.dataset.bookStock))"
+                        <%= book.so_luong === 0 ? 'disabled' : '' %>>
+                        <% if (book.so_luong > 0) { %>
+                          <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                        <% } else { %>
+                          <i class="bi bi-x-circle"></i> Hết hàng
+                        <% } %>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Cart Badge -->
+    <div class="cart-badge" onclick="showCart()" title="Xem giỏ hàng">
+      <i class="bi bi-cart3"></i>
+      <span class="badge-count" id="cart-badge-count" style="display: none;">0</span>
+    </div>
+
+    </div>
+    <!-- End content wrapper -->
+
+    <!-- Cart Modal -->
+    <div class="modal fade" id="cartModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-cart3"></i> Giỏ Hàng</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="cart-items">
+            <p class="text-muted text-center">Giỏ hàng của bạn đang trống</p>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong>Tổng tiền:</strong>
+                <strong class="text-primary fs-4" id="cart-total">0 ₫</strong>
+              </div>
+              <button class="btn btn-primary btn-lg w-100" onclick="checkout()">
+                <i class="bi bi-credit-card"></i> Thanh Toán
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Orders Modal -->
+    <div class="modal fade" id="myOrdersModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title"><i class="bi bi-box-seam"></i> Đơn Hàng Của Tôi</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="orders-container">
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+              </div>
+              <p class="mt-3">Đang tải đơn hàng...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title"><i class="bi bi-info-circle"></i> Chi Tiết Đơn Hàng</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="order-detail-container">
+            <div class="text-center py-5">
+              <div class="spinner-border text-info" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+              </div>
+              <p class="mt-3">Đang tải chi tiết...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+         🎨 3D ANIMATED BACKGROUND JAVASCRIPT
+         Copy từ đây...
+         ========================= -->
+    <script>
+      // Tạo particles động
+      function createParticles() {
+        const container = document.getElementById('particles-container');
+        const particleCount = 30; // Số lượng particles
+        
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          
+          // Random size (20px - 150px)
+          const size = Math.random() * 130 + 20;
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+          
+          // Random position
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.top = Math.random() * 100 + '%';
+          
+          // Random animation delay
+          particle.style.animationDelay = Math.random() * 20 + 's';
+          particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+          
+          container.appendChild(particle);
+        }
+        
+        // Tạo geometric shapes
+        for (let i = 0; i < 5; i++) {
+          const shape = document.createElement('div');
+          shape.className = 'geo-shape';
+          
+          const size = Math.random() * 200 + 100;
+          shape.style.width = size + 'px';
+          shape.style.height = size + 'px';
+          shape.style.left = Math.random() * 100 + '%';
+          shape.style.top = Math.random() * 100 + '%';
+          shape.style.borderRadius = Math.random() > 0.5 ? '50%' : '10px';
+          shape.style.animationDelay = Math.random() * 5 + 's';
+          
+          container.appendChild(shape);
+        }
+      }
+      
+      // Khởi tạo particles khi trang load
+      document.addEventListener('DOMContentLoaded', createParticles);
+    </script>
+    <!-- ... đến đây để copy JavaScript -->
+
+    <!-- Truyền userId vào JavaScript -->
+    <script>
+      window.currentUserId = <%= JSON.stringify(userId) %>;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Lấy user ID từ server (để phân biệt giỏ hàng theo user)
+      const currentUserId = window.currentUserId;
+      
+      // Tạo key localStorage riêng cho mỗi user
+      function getCartKey() {
+        if (currentUserId) {
+          return `bookCart_user_${currentUserId}`;
+        }
+        return 'bookCart_guest'; // Giỏ hàng cho khách (chưa đăng nhập)
+      }
+
+      // Cart management - Load giỏ hàng theo user
+      let cart = JSON.parse(localStorage.getItem(getCartKey())) || [];
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', function() {
+        updateCartUI();
+        updateStats();
+        setupFilters();
+        setupSearch();
+        setupSort();
+      });
+
+      // Add to cart
+      function addToCart(bookId, bookName, price, stock) {
+        if (stock === 0) {
+          alert('Sách này đã hết hàng!');
+          return;
+        }
+
+        const existingItem = cart.find(item => item.id === bookId);
+        if (existingItem) {
+          if (existingItem.quantity >= stock) {
+            alert(`Chỉ còn ${stock} quyển trong kho!`);
+            return;
+          }
+          existingItem.quantity += 1;
+        } else {
+          cart.push({
+            id: bookId,
+            name: bookName,
+            price: price,
+            quantity: 1,
+            stock: stock
+          });
+        }
+
+        localStorage.setItem(getCartKey(), JSON.stringify(cart));
+        updateCartUI();
+        showNotification('Đã thêm vào giỏ hàng!', 'success');
+      }
+
+      // Update cart UI
+      function updateCartUI() {
+        const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        document.getElementById('cart-count').textContent = cartCount;
+        const badgeCount = document.getElementById('cart-badge-count');
+        if (cartCount > 0) {
+          badgeCount.textContent = cartCount;
+          badgeCount.style.display = 'flex';
+        } else {
+          badgeCount.style.display = 'none';
+        }
+
+        // Update cart modal
+        const cartItems = document.getElementById('cart-items');
+        const cartTotalEl = document.getElementById('cart-total');
+
+        if (cart.length === 0) {
+          cartItems.innerHTML = '<p class="text-muted text-center">Giỏ hàng của bạn đang trống</p>';
+          cartTotalEl.textContent = '0 ₫';
+        } else {
+          cartItems.innerHTML = cart.map(item => `
+            <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+              <div>
+                <strong>${item.name}</strong><br>
+                <small class="text-muted">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)} x ${item.quantity}</small>
+              </div>
+              <div class="text-end">
+                <strong class="text-primary">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity)}</strong><br>
+                <button class="btn btn-sm btn-danger mt-2" onclick="removeFromCart(${item.id})">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          `).join('');
+          cartTotalEl.textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cartTotal);
+        }
+      }
+
+      // Remove from cart
+      function removeFromCart(bookId) {
+        // Chuyển đổi bookId thành string để đảm bảo so sánh chính xác
+        const bookIdStr = String(bookId);
+        cart = cart.filter(item => String(item.id) !== bookIdStr);
+        localStorage.setItem(getCartKey(), JSON.stringify(cart));
+        updateCartUI();
+        showNotification('Đã xóa khỏi giỏ hàng!', 'info');
+      }
+
+      // Show cart modal
+      function showCart() {
+        const modal = new bootstrap.Modal(document.getElementById('cartModal'));
+        modal.show();
+      }
+
+      // Checkout
+      function checkout() {
+        if (cart.length === 0) {
+          alert('Giỏ hàng của bạn đang trống!');
+          return;
+        }
+        // Chuyển sang trang thanh toán
+        window.location.href = '/shop/checkout';
+      }
+
+      // Update stats
+      function updateStats() {
+        const inStockBooks = document.querySelectorAll('.book-item').length;
+        document.getElementById('in-stock-books').textContent = inStockBooks;
+      }
+
+      // Filter by category
+      function setupFilters() {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const category = this.dataset.category;
+            const books = document.querySelectorAll('.book-item');
+            
+            books.forEach(book => {
+              if (category === 'all' || book.dataset.category === category) {
+                book.style.display = '';
+              } else {
+                book.style.display = 'none';
+              }
+            });
+            
+            updateVisibleCount();
+          });
+        });
+      }
+
+      // Search
+      function setupSearch() {
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', function() {
+          const query = this.value.toLowerCase();
+          const books = document.querySelectorAll('.book-item');
+          
+          books.forEach(book => {
+            const name = book.dataset.name || '';
+            const author = book.dataset.author || '';
+            
+            if (name.includes(query) || author.includes(query)) {
+              book.style.display = '';
+            } else {
+              book.style.display = 'none';
+            }
+          });
+          
+          updateVisibleCount();
+        });
+      }
+
+      // Sort
+      function setupSort() {
+        const sortSelect = document.getElementById('sort-select');
+        sortSelect.addEventListener('change', function() {
+          const sortValue = this.value;
+          const container = document.getElementById('books-grid');
+          const books = Array.from(container.querySelectorAll('.book-item'));
+          
+          books.sort((a, b) => {
+            switch(sortValue) {
+              case 'price-asc':
+                return (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0);
+              case 'price-desc':
+                return (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0);
+              case 'name-asc':
+                return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+              case 'name-desc':
+                return (b.dataset.name || '').localeCompare(a.dataset.name || '');
+              default:
+                return 0;
+            }
+          });
+          
+          books.forEach(book => container.appendChild(book));
+        });
+      }
+
+      // Update visible count
+      function updateVisibleCount() {
+        const visible = document.querySelectorAll('.book-item[style=""]').length + 
+                       document.querySelectorAll('.book-item:not([style])').length;
+        // Could update a counter here if needed
+      }
+
+      // Show notification
+      function showNotification(message, type = 'info') {
+        // Simple alert for now, can be enhanced with toast notifications
+        const colors = {
+          success: '#48bb78',
+          error: '#f56565',
+          info: '#4299e1'
+        };
+        
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: ${colors[type] || colors.info};
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          z-index: 9999;
+          animation: slideIn 0.3s ease;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => notification.remove(), 300);
+        }, 2000);
+      }
+
+      // Add CSS animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+        .order-card {
+          border: 2px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 1.5rem;
+          margin-bottom: 1rem;
+          transition: all 0.3s;
+        }
+        .order-card:hover {
+          border-color: var(--primary-color);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        .order-status-badge {
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 0.9rem;
+        }
+        .status-cho-xac-nhan { background: #fef3c7; color: #92400e; }
+        .status-cho-thanh-toan { background: #fef3c7; color: #92400e; }
+        .status-da-xac-nhan { background: #dbeafe; color: #1e40af; }
+        .status-dang-chuan-bi { background: #dbeafe; color: #1e40af; }
+        .status-dang-giao-hang { background: #a7f3d0; color: #065f46; }
+        .status-da-giao { background: #86efac; color: #14532d; }
+        .status-da-huy { background: #fecaca; color: #7f1d1d; }
+      `;
+      document.head.appendChild(style);
+
+      // ========================================
+      // QUẢN LÝ ĐƠN HÀNG
+      // ========================================
+
+      // Hiển thị đơn hàng của tôi
+      async function showMyOrders() {
+        const modal = new bootstrap.Modal(document.getElementById('myOrdersModal'));
+        modal.show();
+        
+        try {
+          const response = await fetch('/shop/my-orders');
+          const data = await response.json();
+          
+          const container = document.getElementById('orders-container');
+          
+          // Kiểm tra nếu chưa đăng nhập
+          if (!data.success && data.message === 'Bạn chưa đăng nhập!') {
+            container.innerHTML = `
+              <div class="text-center py-5">
+                <i class="bi bi-person-x" style="font-size: 5rem; color: #cbd5e0;"></i>
+                <h5 class="mt-3">Vui lòng đăng nhập</h5>
+                <p class="text-muted">Bạn cần đăng nhập để xem đơn hàng của mình.</p>
+                <a href="/login" class="btn btn-primary mt-3">
+                  <i class="bi bi-box-arrow-in-right"></i> Đăng nhập ngay
+                </a>
+              </div>
+            `;
+            return;
+          }
+          
+          if (!data.success || data.orders.length === 0) {
+            container.innerHTML = `
+              <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 5rem; color: #cbd5e0;"></i>
+                <h5 class="mt-3">Chưa có đơn hàng nào</h5>
+                <p class="text-muted">Bạn chưa đặt hàng lần nào.</p>
+                <button class="btn btn-primary mt-3" data-bs-dismiss="modal">
+                  <i class="bi bi-arrow-left"></i> Quay lại mua sắm
+                </button>
+              </div>
+            `;
+            return;
+          }
+          
+          // Hiển thị danh sách đơn hàng
+          container.innerHTML = data.orders.map(order => {
+            const statusClass = order.trang_thai.toLowerCase().replace(/ /g, '-');
+            const statusColor = getStatusColor(order.trang_thai);
+            
+            return `
+              <div class="order-card">
+                <div class="row align-items-center">
+                  <div class="col-md-2">
+                    <strong class="text-primary">#${order.id_don_hang}</strong>
+                    <br>
+                    <small class="text-muted">${new Date(order.ngay_dat).toLocaleDateString('vi-VN')}</small>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="mb-1">
+                      <i class="bi bi-box"></i> ${order.tong_so_luong_sach || 0} quyển sách
+                    </div>
+                    <strong class="text-primary fs-5">
+                      ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.tong_tien)}
+                    </strong>
+                  </div>
+                  <div class="col-md-3">
+                    <small class="text-muted d-block">Thanh toán:</small>
+                    <span>${order.phuong_thuc_thanh_toan}</span>
+                  </div>
+                  <div class="col-md-2 text-center">
+                    <span class="order-status-badge status-${statusClass}">
+                      ${order.trang_thai}
+                    </span>
+                  </div>
+                  <div class="col-md-2 text-end">
+                    <button class="btn btn-sm btn-outline-primary" onclick="showOrderDetail(${order.id_don_hang})">
+                      <i class="bi bi-eye"></i> Chi tiết
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+        } catch (error) {
+          console.error('Lỗi khi tải đơn hàng:', error);
+          document.getElementById('orders-container').innerHTML = `
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle"></i> 
+              Lỗi khi tải đơn hàng. Vui lòng thử lại sau.
+            </div>
+          `;
+        }
+      }
+
+      // Hiển thị chi tiết đơn hàng
+      async function showOrderDetail(orderId) {
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+        modal.show();
+        
+        try {
+          const response = await fetch(`/shop/order-detail/${orderId}`);
+          const data = await response.json();
+          
+          const container = document.getElementById('order-detail-container');
+          
+          if (!data.success || data.items.length === 0) {
+            container.innerHTML = `
+              <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> 
+                Không tìm thấy chi tiết đơn hàng.
+              </div>
+            `;
+            return;
+          }
+          
+          // Hiển thị chi tiết sản phẩm
+          const itemsHtml = data.items.map(item => `
+            <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded">
+              <div>
+                <strong>${item.ten_sach}</strong>
+                <br>
+                <small class="text-muted">
+                  ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.don_gia)} 
+                  x ${item.so_luong}
+                </small>
+              </div>
+              <strong class="text-primary">
+                ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.thanh_tien)}
+              </strong>
+            </div>
+          `).join('');
+          
+          const totalAmount = data.items.reduce((sum, item) => sum + parseFloat(item.thanh_tien), 0);
+          
+          container.innerHTML = `
+            <div class="mb-3">
+              <h6 class="text-primary mb-3">
+                <i class="bi bi-box-seam"></i> Sản phẩm đã đặt
+              </h6>
+              ${itemsHtml}
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+              <strong class="fs-5">Tổng cộng:</strong>
+              <strong class="text-primary fs-4">
+                ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount)}
+              </strong>
+            </div>
+          `;
+          
+        } catch (error) {
+          console.error('Lỗi khi tải chi tiết đơn hàng:', error);
+          document.getElementById('order-detail-container').innerHTML = `
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle"></i> 
+              Lỗi khi tải chi tiết. Vui lòng thử lại sau.
+            </div>
+          `;
+        }
+      }
+
+      // Get status color
+      function getStatusColor(status) {
+        const colors = {
+          'Chờ xác nhận': '#f59e0b',
+          'Chờ thanh toán': '#f59e0b',
+          'Đã xác nhận': '#3b82f6',
+          'Đang chuẩn bị': '#3b82f6',
+          'Đang giao hàng': '#10b981',
+          'Đã giao': '#059669',
+          'Đã hủy': '#ef4444'
+        };
+        return colors[status] || '#6b7280';
+      }
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sách của <%= library.ten_thuvien %></title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <style>
+      .book-card {
+        transition: transform 0.2s;
+      }
+      .book-card:hover {
+        transform: translateY(-5px);
+      }
+      .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h2><i class="bi bi-building"></i> <%= library.ten_thuvien %></h2>
+              <p class="text-muted mb-0">Địa chỉ: <%= library.dia_chi %></p>
+            </div>
+            <div>
+              <a href="/admin/thu-vien" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại
+              </a>
+            </div>
+          </div>
+
+          <!-- Thống kê -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <div class="card stats-card">
+                <div class="card-body text-center">
+                  <h5 class="card-title"><i class="bi bi-book"></i></h5>
+                  <h3><%= books.length %></h3>
+                  <p class="card-text">Loại sách</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card stats-card">
+                <div class="card-body text-center">
+                  <h5 class="card-title"><i class="bi bi-stack"></i></h5>
+                  <h3>
+                    <%= books.reduce((sum, book) => sum + book.so_luong, 0) %>
+                  </h3>
+                  <p class="card-text">Tổng số quyển</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card stats-card">
+                <div class="card-body text-center">
+                  <h5 class="card-title"><i class="bi bi-wifi"></i></h5>
+                  <h3><%= library.wifi ? 'Có' : 'Không' %></h3>
+                  <p class="card-text">Wifi</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card stats-card">
+                <div class="card-body text-center">
+                  <h5 class="card-title"><i class="bi bi-thermometer"></i></h5>
+                  <h3><%= library.dieu_hoa ? 'Có' : 'Không' %></h3>
+                  <p class="card-text">Điều hòa</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Danh sách sách -->
+          <% if (books.length === 0) { %>
+          <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1"></i>
+            <h4>Thư viện chưa có sách nào</h4>
+            <p>Hãy thêm sách vào thư viện để người dùng có thể xem và mượn.</p>
+            <a href="/admin/thu-vien" class="btn btn-primary">
+              <i class="bi bi-plus-circle"></i> Thêm sách
+            </a>
+          </div>
+          <% } else { %>
+          <div class="row">
+            <% books.forEach(function(book) { %>
+            <div class="col-md-6 col-lg-4 mb-3">
+              <div class="card book-card h-100">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <i class="bi bi-book"></i> <%= book.ten_sach %>
+                  </h5>
+                  <p class="card-text">
+                    <strong>Tác giả:</strong> <%= book.tac_gia %><br />
+                    <strong>Năm xuất bản:</strong> <%= book.nam_xuat_ban %><br />
+                    <strong>Thể loại:</strong>
+                    <span class="badge bg-primary"
+                      ><%= book.ten_theloai %></span
+                    >
+                  </p>
+                </div>
+                <div class="card-footer">
+                  <div class="row text-center">
+                    <div class="col-6">
+                      <span class="badge bg-success fs-6">
+                        <i class="bi bi-stack"></i> <%= book.so_luong %>
+                      </span>
+                      <small class="d-block text-muted">Trong thư viện</small>
+                    </div>
+                    <div class="col-6">
+                      <span class="badge bg-info fs-6">
+                        <i class="bi bi-box"></i> <%= book.tongsl %>
+                      </span>
+                      <small class="d-block text-muted">Tổng cộng</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

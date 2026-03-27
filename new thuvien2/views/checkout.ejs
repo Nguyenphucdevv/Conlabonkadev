@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh Toán - Đặt Hàng</title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+        --success-color: #48bb78;
+        --text-dark: #2d3748;
+        --text-light: #718096;
+        --bg-light: #f7fafc;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-light);
+        color: var(--text-dark);
+      }
+
+      .checkout-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        padding: 2rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+
+      .checkout-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+
+      .card-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1.25rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+
+      .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .form-control,
+      .form-select {
+        border-radius: 10px;
+        border: 2px solid #e2e8f0;
+        padding: 0.75rem;
+        transition: all 0.3s;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .btn-order {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+      }
+
+      .btn-order:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+      }
+
+      .order-summary {
+        background: var(--bg-light);
+        padding: 1.5rem;
+        border-radius: 10px;
+      }
+
+      .order-item {
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+      }
+
+      .order-total {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 1rem;
+      }
+
+      .payment-method {
+        cursor: pointer;
+        padding: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+      }
+
+      .payment-method:hover {
+        border-color: var(--primary-color);
+        background: rgba(102, 126, 234, 0.05);
+      }
+
+      .payment-method.active {
+        border-color: var(--primary-color);
+        background: rgba(102, 126, 234, 0.1);
+      }
+
+      .payment-method input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+      }
+
+      .empty-cart {
+        text-align: center;
+        padding: 4rem 2rem;
+      }
+
+      .empty-cart i {
+        font-size: 5rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="checkout-header">
+      <div class="container">
+        <h1><i class="bi bi-credit-card"></i> Thanh Toán & Đặt Hàng</h1>
+        <p class="mb-0">Vui lòng điền đầy đủ thông tin để hoàn tất đơn hàng</p>
+      </div>
+    </div>
+
+    <div class="container mb-5">
+      <div class="row">
+        <!-- Form thông tin khách hàng -->
+        <div class="col-lg-7">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-person-fill"></i> Thông Tin Người Nhận
+            </div>
+            <div class="card-body">
+              <form id="checkout-form">
+                <div class="mb-3">
+                  <label for="ten_khach_hang" class="form-label">
+                    <i class="bi bi-person"></i> Họ và Tên
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="ten_khach_hang"
+                    name="ten_khach_hang"
+                    placeholder="Nhập họ và tên người nhận"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="so_dien_thoai" class="form-label">
+                    <i class="bi bi-telephone"></i> Số Điện Thoại
+                    <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    class="form-control"
+                    id="so_dien_thoai"
+                    name="so_dien_thoai"
+                    placeholder="Nhập số điện thoại"
+                    pattern="[0-9]{10,11}"
+                    required
+                  />
+                  <small class="text-muted">Ví dụ: 0912345678</small>
+                </div>
+
+                <div class="mb-3">
+                  <label for="email" class="form-label">
+                    <i class="bi bi-envelope"></i> Email
+                  </label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    name="email"
+                    placeholder="Nhập email (không bắt buộc)"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="dia_chi" class="form-label">
+                    <i class="bi bi-geo-alt"></i> Địa Chỉ Nhận Hàng
+                    <span class="text-danger">*</span>
+                  </label>
+                  <textarea
+                    class="form-control"
+                    id="dia_chi"
+                    name="dia_chi"
+                    rows="3"
+                    placeholder="Nhập địa chỉ chi tiết: Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"
+                    required
+                  ></textarea>
+                </div>
+
+                <div class="mb-3">
+                  <label for="ghi_chu_khach" class="form-label">
+                    <i class="bi bi-chat-left-text"></i> Ghi Chú (Tùy chọn)
+                  </label>
+                  <textarea
+                    class="form-control"
+                    id="ghi_chu_khach"
+                    name="ghi_chu_khach"
+                    rows="2"
+                    placeholder="Ghi chú thêm về đơn hàng (giao giờ hành chính, gọi trước khi giao...)"
+                  ></textarea>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Phương thức thanh toán -->
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-wallet2"></i> Phương Thức Thanh Toán
+            </div>
+            <div class="card-body">
+              <div
+                class="payment-method active"
+                onclick="selectPayment(this, 'cod')"
+              >
+                <div class="d-flex align-items-center">
+                  <input
+                    type="radio"
+                    name="phuong_thuc_thanh_toan"
+                    value="Thanh toán khi nhận hàng"
+                    id="cod"
+                    checked
+                    class="me-3"
+                  />
+                  <div>
+                    <strong
+                      ><i class="bi bi-cash"></i> Thanh toán khi nhận hàng
+                      (COD)</strong
+                    >
+                    <p class="mb-0 text-muted small">
+                      Thanh toán bằng tiền mặt khi nhận hàng
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="payment-method" onclick="selectPayment(this, 'bank')">
+                <div class="d-flex align-items-center">
+                  <input
+                    type="radio"
+                    name="phuong_thuc_thanh_toan"
+                    value="Chuyển khoản ngân hàng"
+                    id="bank"
+                    class="me-3"
+                  />
+                  <div>
+                    <strong
+                      ><i class="bi bi-bank"></i> Chuyển khoản ngân hàng</strong
+                    >
+                    <p class="mb-0 text-muted small">
+                      Chuyển khoản trước khi nhận hàng
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="payment-method" onclick="selectPayment(this, 'momo')">
+                <div class="d-flex align-items-center">
+                  <input
+                    type="radio"
+                    name="phuong_thuc_thanh_toan"
+                    value="Ví MoMo"
+                    id="momo"
+                    class="me-3"
+                  />
+                  <div>
+                    <strong
+                      ><i class="bi bi-wallet"></i> Ví điện tử MoMo</strong
+                    >
+                    <p class="mb-0 text-muted small">Thanh toán qua ví MoMo</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tóm tắt đơn hàng -->
+        <div class="col-lg-5">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-cart3"></i> Đơn Hàng Của Bạn
+            </div>
+            <div class="card-body">
+              <div id="order-summary">
+                <div class="empty-cart">
+                  <i class="bi bi-cart-x"></i>
+                  <h5>Giỏ hàng trống</h5>
+                  <p class="text-muted">Vui lòng thêm sách vào giỏ hàng</p>
+                  <a href="/shop" class="btn btn-primary mt-3">
+                    <i class="bi bi-arrow-left"></i> Quay lại cửa hàng
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Lấy user ID từ cookie/session (lấy từ tất cả localStorage keys)
+      function getCurrentUserId() {
+        // Tìm key có dạng bookCart_user_XXX
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('bookCart_user_')) {
+            const userId = key.replace('bookCart_user_', '');
+            // Kiểm tra xem key này có data không
+            const data = localStorage.getItem(key);
+            if (data && data !== '[]') {
+              return userId;
+            }
+          }
+        }
+        return null;
+      }
+
+      // Tạo key localStorage riêng cho mỗi user
+      function getCartKey() {
+        const userId = getCurrentUserId();
+        if (userId) {
+          return `bookCart_user_${userId}`;
+        }
+        return 'bookCart_guest'; // Giỏ hàng cho khách (chưa đăng nhập)
+      }
+
+      // Load giỏ hàng từ localStorage theo user
+      let cart = JSON.parse(localStorage.getItem(getCartKey())) || [];
+
+      // Hiển thị đơn hàng
+      function displayOrderSummary() {
+        const orderSummary = document.getElementById("order-summary");
+
+        if (cart.length === 0) {
+          orderSummary.innerHTML = `
+            <div class="empty-cart">
+              <i class="bi bi-cart-x"></i>
+              <h5>Giỏ hàng trống</h5>
+              <p class="text-muted">Vui lòng thêm sách vào giỏ hàng</p>
+              <a href="/shop" class="btn btn-primary mt-3">
+                <i class="bi bi-arrow-left"></i> Quay lại cửa hàng
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        const totalAmount = cart.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+
+        const itemsHtml = cart
+          .map(
+            (item) => `
+          <div class="order-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <h6 class="mb-1">${item.name}</h6>
+                <p class="mb-0 text-muted small">
+                  ${new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(item.price)} 
+                  x ${item.quantity}
+                </p>
+              </div>
+              <strong class="text-primary">
+                ${new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(item.price * item.quantity)}
+              </strong>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+
+        orderSummary.innerHTML = `
+          <div class="order-summary">
+            ${itemsHtml}
+            <div class="order-total">
+              <div class="d-flex justify-content-between align-items-center">
+                <span>Tổng tiền:</span>
+                <span>${new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(totalAmount)}</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-order w-100 mt-3" onclick="submitOrder()">
+              <i class="bi bi-check-circle"></i> Xác Nhận Đặt Hàng
+            </button>
+            <a href="/shop" class="btn btn-outline-secondary w-100 mt-2">
+              <i class="bi bi-arrow-left"></i> Quay lại cửa hàng
+            </a>
+          </div>
+        `;
+      }
+
+      // Chọn phương thức thanh toán
+      function selectPayment(element, paymentType) {
+        document
+          .querySelectorAll(".payment-method")
+          .forEach((pm) => pm.classList.remove("active"));
+        element.classList.add("active");
+        document.getElementById(paymentType).checked = true;
+      }
+
+      // Submit đơn hàng
+      async function submitOrder() {
+        const form = document.getElementById("checkout-form");
+
+        // Validate form
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        if (cart.length === 0) {
+          alert("Giỏ hàng trống!");
+          return;
+        }
+
+        // Lấy phương thức thanh toán
+        const paymentMethod = document.querySelector(
+          'input[name="phuong_thuc_thanh_toan"]:checked'
+        ).value;
+
+        // Nếu là COD (Thanh toán khi nhận hàng) → xử lý ngay
+        if (paymentMethod === "Thanh toán khi nhận hàng") {
+          await processCODOrder(form, paymentMethod);
+        } else {
+          // Nếu là chuyển khoản hoặc MoMo → hiển thị form QR và upload ảnh
+          showPaymentProofModal(form, paymentMethod);
+        }
+      }
+
+      // Xử lý đơn hàng COD
+      async function processCODOrder(form, paymentMethod) {
+        const formData = new FormData(form);
+        formData.append("phuong_thuc_thanh_toan", paymentMethod);
+        formData.append("cart_data", JSON.stringify(cart));
+
+        try {
+          const response = await fetch("/shop/checkout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams(formData),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Xóa giỏ hàng theo user
+            localStorage.removeItem(getCartKey());
+
+            // Hiển thị thông báo thành công
+            alert("🎉 " + data.message);
+
+            // Chuyển đến trang đơn hàng nếu có redirect_url, nếu không thì về shop
+            if (data.redirect_url) {
+              window.location.href = data.redirect_url;
+            } else {
+              // Mặc định chuyển về shop
+              window.location.href = "/shop?success=Đặt hàng thành công!";
+            }
+          } else {
+            alert("❌ Lỗi: " + data.message);
+          }
+        } catch (error) {
+          console.error("Lỗi khi đặt hàng:", error);
+          alert("❌ Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
+        }
+      }
+
+      // Hiển thị modal QR code và form upload ảnh minh chứng
+      async function showPaymentProofModal(form, paymentMethod) {
+        // Lấy thông tin đơn hàng trước
+        const formData = new FormData(form);
+        formData.append("phuong_thuc_thanh_toan", paymentMethod);
+        formData.append("cart_data", JSON.stringify(cart));
+
+        try {
+          // Tạo đơn hàng trước (trạng thái "Chờ thanh toán")
+          const response = await fetch("/shop/checkout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams(formData),
+          });
+
+          const data = await response.json();
+
+          if (data.success && data.order_id) {
+            // Lấy QR code từ server
+            let qrData = {
+              qr_image: null,
+              account_number: null,
+              account_name: null,
+              bank_name: null
+            };
+
+            try {
+              const qrResponse = await fetch(`/shop/payment-qr?method=${encodeURIComponent(paymentMethod)}`, {
+                headers: {
+                  'Accept': 'application/json'
+                }
+              });
+              
+              // Kiểm tra response status
+              if (!qrResponse.ok) {
+                console.warn(`⚠️ QR response status: ${qrResponse.status}`);
+                // Không throw error, chỉ log và tiếp tục
+              }
+              
+              // Kiểm tra response có phải JSON không
+              const contentType = qrResponse.headers.get('content-type') || '';
+              
+              if (contentType.includes('application/json')) {
+                // Response là JSON
+                qrData = await qrResponse.json();
+                console.log('✅ Đã lấy QR code:', qrData);
+              } else {
+                // Response không phải JSON, thử parse text
+                const text = await qrResponse.text();
+                console.warn('⚠️ Response không phải JSON, content-type:', contentType);
+                console.warn('⚠️ Response text (first 300 chars):', text.substring(0, 300));
+                
+                // Thử parse JSON từ text nếu có thể
+                try {
+                  if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+                    qrData = JSON.parse(text);
+                    console.log('✅ Đã parse QR code từ text:', qrData);
+                  } else {
+                    console.warn('⚠️ Response không phải JSON format, dùng giá trị mặc định');
+                  }
+                } catch (parseError) {
+                  console.warn('⚠️ Không thể parse response, dùng giá trị mặc định');
+                }
+              }
+            } catch (qrError) {
+              console.error('❌ Lỗi khi lấy QR code:', qrError);
+              // Dùng giá trị mặc định nếu không lấy được QR code
+              // Không throw error để không làm gián đoạn flow
+              console.warn('⚠️ Không thể lấy QR code từ server, dùng giá trị mặc định');
+            }
+
+            // Hiển thị modal với QR code và form upload
+            const modalHtml = `
+              <div class="modal fade" id="paymentProofModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                      <h5 class="modal-title">
+                        <i class="bi bi-qr-code"></i> Thanh Toán ${paymentMethod}
+                      </h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="cancelOrder(${data.order_id})"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        Vui lòng quét mã QR và chuyển khoản đúng số tiền, sau đó upload ảnh minh chứng chuyển khoản.
+                      </div>
+                      
+                      <div class="row">
+                        <div class="col-md-6 text-center mb-4">
+                          <h6 class="mb-3"><strong>Mã QR Thanh Toán</strong></h6>
+                          ${qrData.qr_image ? 
+                            `<img src="${qrData.qr_image}" alt="QR Code" class="img-fluid border rounded p-2" style="max-width: 300px;">` :
+                            `<div class="alert alert-warning">QR Code chưa được cấu hình. Vui lòng liên hệ admin.</div>`
+                          }
+                          ${qrData.account_number ? 
+                            `<p class="mt-3 mb-0"><strong>Số tài khoản:</strong> ${qrData.account_number}</p>` : ''
+                          }
+                          ${qrData.account_name ? 
+                            `<p class="mb-0"><strong>Chủ tài khoản:</strong> ${qrData.account_name}</p>` : ''
+                          }
+                        </div>
+                        
+                        <div class="col-md-6">
+                          <h6 class="mb-3"><strong>Thông Tin Đơn Hàng</strong></h6>
+                          <div class="order-info p-3 bg-light rounded">
+                            <p class="mb-2"><strong>Mã đơn hàng:</strong> #${data.order_id}</p>
+                            <p class="mb-2"><strong>Số tiền:</strong> 
+                              <span class="text-primary fw-bold fs-5">
+                                ${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
+                                  cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+                                )}
+                              </span>
+                            </p>
+                            <p class="mb-0"><strong>Phương thức:</strong> ${paymentMethod}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr>
+
+                      <form id="payment-proof-form" enctype="multipart/form-data">
+                        <input type="hidden" name="order_id" value="${data.order_id}">
+                        <input type="hidden" name="payment_method" value="${paymentMethod}">
+                        
+                        <div class="mb-3">
+                          <label for="proof_image" class="form-label">
+                            <i class="bi bi-image"></i> Upload Ảnh Minh Chứng Chuyển Khoản
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input 
+                            type="file" 
+                            class="form-control" 
+                            id="proof_image" 
+                            name="proof_image" 
+                            accept="image/*" 
+                            required
+                            onchange="previewImage(this)"
+                          >
+                          <small class="text-muted">Chấp nhận: JPG, PNG, GIF (tối đa 5MB)</small>
+                          <div id="image-preview" class="mt-2"></div>
+                        </div>
+
+                        <div class="mb-3">
+                          <label for="payment_note" class="form-label">
+                            <i class="bi bi-chat-left-text"></i> Ghi Chú (Tùy chọn)
+                          </label>
+                          <textarea 
+                            class="form-control" 
+                            id="payment_note" 
+                            name="payment_note" 
+                            rows="2"
+                            placeholder="Ghi chú thêm về giao dịch chuyển khoản..."
+                          ></textarea>
+                        </div>
+                      </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="cancelOrder(${data.order_id})">
+                        <i class="bi bi-x-circle"></i> Hủy Đơn Hàng
+                      </button>
+                      <button type="button" class="btn btn-primary" onclick="submitPaymentProof(${data.order_id})">
+                        <i class="bi bi-check-circle"></i> Gửi Minh Chứng
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+
+            // Thêm modal vào body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('paymentProofModal'));
+            modal.show();
+
+            // Xóa modal khi đóng
+            document.getElementById('paymentProofModal').addEventListener('hidden.bs.modal', function () {
+              this.remove();
+            });
+
+          } else {
+            alert("❌ Lỗi: " + (data.message || "Không thể tạo đơn hàng"));
+          }
+        } catch (error) {
+          console.error("Lỗi khi tạo đơn hàng:", error);
+          alert("❌ Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại!");
+        }
+      }
+
+      // Preview ảnh trước khi upload
+      function previewImage(input) {
+        const preview = document.getElementById('image-preview');
+        preview.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-thumbnail';
+            img.style.maxWidth = '300px';
+            img.style.maxHeight = '300px';
+            preview.appendChild(img);
+          };
+          reader.readAsDataURL(input.files[0]);
+        }
+      }
+
+      // Gửi ảnh minh chứng
+      async function submitPaymentProof(orderId) {
+        const form = document.getElementById('payment-proof-form');
+        const proofImage = document.getElementById('proof_image').files[0];
+
+        if (!proofImage) {
+          alert('Vui lòng chọn ảnh minh chứng chuyển khoản!');
+          return;
+        }
+
+        // Tạo FormData từ form (đã bao gồm tất cả các field)
+        const formData = new FormData(form);
+        // KHÔNG append thêm proof_image vì FormData từ form đã có sẵn rồi
+
+        try {
+          const response = await fetch('/shop/upload-payment-proof', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Xóa giỏ hàng theo user
+            localStorage.removeItem(getCartKey());
+
+            // Đóng modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentProofModal'));
+            modal.hide();
+
+            // Hiển thị thông báo thành công
+            alert('✅ Đã gửi ảnh minh chứng thành công! Admin sẽ xác nhận đơn hàng của bạn sớm.');
+
+            // Chuyển về shop
+            window.location.href = '/shop?success=Đã gửi ảnh minh chứng thành công!';
+          } else {
+            alert('❌ Lỗi: ' + (data.message || 'Không thể upload ảnh minh chứng'));
+          }
+        } catch (error) {
+          console.error('Lỗi khi upload ảnh minh chứng:', error);
+          alert('❌ Có lỗi xảy ra khi upload ảnh. Vui lòng thử lại!');
+        }
+      }
+
+      // Hủy đơn hàng
+      async function cancelOrder(orderId) {
+        if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
+          try {
+            const response = await fetch(`/shop/cancel-order/${orderId}`, {
+              method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              alert('Đã hủy đơn hàng thành công!');
+              window.location.href = '/shop';
+            } else {
+              alert('❌ Lỗi: ' + (data.message || 'Không thể hủy đơn hàng'));
+            }
+          } catch (error) {
+            console.error('Lỗi khi hủy đơn hàng:', error);
+            alert('❌ Có lỗi xảy ra khi hủy đơn hàng.');
+          }
+        }
+      }
+
+      // Khởi tạo
+      document.addEventListener("DOMContentLoaded", function () {
+        displayOrderSummary();
+      });
+    </script>
+  </body>
+</html>

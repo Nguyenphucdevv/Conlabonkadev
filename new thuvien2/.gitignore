@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment variables (chứa mật khẩu DB - KHÔNG đẩy lên!)
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build artifacts
+dist/
+build/

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <link rel="stylesheet" href="/map.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <title>Trang Chính</title>
+    <style>
+      #map {
+        height: 400px;
+        width: 100%;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Trang Chính</h1>
+
+    <div id="map"></div>
+
+    <script>
+      // Khởi tạo bản đồ
+      var map = L.map("map").setView([10.762622, 106.660172], 13); // Tọa độ Sài Gòn
+
+      // Thêm layer OpenStreetMap
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      // Thêm marker ví dụ
+      L.marker([10.762622, 106.660172])
+        .addTo(map)
+        .bindPopup("Ví dụ vị trí")
+        .openPopup();
+    </script>
+  </body>
+</html>

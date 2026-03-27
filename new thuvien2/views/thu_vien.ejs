@@ -1,0 +1,2646 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Thư Viện</title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <!-- Favicon - File JPG -->
+    <!-- Đảm bảo file thuvienavt.jpg nằm trong thư mục public/images/ -->
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="/thuvien.css" />
+
+    <!-- Script định nghĩa các hàm global TRƯỚC KHI body render -->
+    <script>
+      // ===== HÀM XỬ LÝ XÓA THƯ VIỆN - ĐỊNH NGHĨA SỚM =====
+      window.handleDeleteLibraryClick = async function (id, name) {
+        console.log("🗑️ ===== handleDeleteLibraryClick CALLED =====");
+        console.log("🗑️ ID:", id);
+        console.log("🗑️ Name:", name);
+
+        if (!id) {
+          alert("❌ Không tìm thấy ID thư viện");
+          console.error("❌ ID is empty or undefined");
+          return;
+        }
+
+        const libraryName = name || "thư viện này";
+        console.log("🗑️ Library name:", libraryName);
+
+        const confirmMessage = `Bạn có chắc chắn muốn xóa thư viện "${libraryName}"?\n\nLưu ý: Tất cả sách trong thư viện này cũng sẽ bị xóa khỏi danh sách.`;
+        console.log("🗑️ Confirm message:", confirmMessage);
+
+        const confirmed = confirm(confirmMessage);
+        console.log("🗑️ User confirmed:", confirmed);
+
+        if (confirmed) {
+          try {
+            console.log("🗑️ Đang gửi yêu cầu xóa thư viện ID:", id);
+            const url = `/admin/thu_vien/delete/${id}`;
+            console.log("🗑️ URL:", url);
+
+            const response = await fetch(url, {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+
+            console.log("📥 Response status:", response.status);
+            console.log("📥 Response ok:", response.ok);
+
+            let result;
+            try {
+              result = await response.json();
+              console.log("📥 Response JSON:", result);
+            } catch (jsonError) {
+              const text = await response.text();
+              console.error("❌ Không parse được JSON:", text);
+              console.error("❌ JSON Error:", jsonError);
+              throw new Error(`Server trả về lỗi: ${text}`);
+            }
+
+            if (response.ok && result.success) {
+              alert("✅ " + (result.message || "Xóa thư viện thành công!"));
+              console.log("✅ Xóa thành công, đang reload trang...");
+              window.location.reload();
+            } else {
+              alert("❌ Lỗi: " + (result.error || "Không thể xóa thư viện"));
+              console.error("❌ Lỗi xóa thư viện:", result);
+            }
+          } catch (error) {
+            console.error("❌ Lỗi khi gửi yêu cầu xóa:", error);
+            console.error("❌ Error stack:", error.stack);
+            alert("❌ Lỗi kết nối: " + error.message);
+          }
+        } else {
+          console.log("🗑️ User cancelled deletion");
+        }
+      };
+
+      // Hàm xử lý xem sách
+      window.handleViewBooksClick = async function (id, name) {
+        console.log("📚 handleViewBooksClick - ID:", id, "Name:", name);
+
+        const labelEl = document.getElementById("booksModalLabel");
+        if (labelEl) {
+          labelEl.textContent = "";
+          const icon = document.createElement("i");
+          icon.className = "bi bi-book me-2";
+          labelEl.appendChild(icon);
+          labelEl.appendChild(
+            document.createTextNode("Quản lý sách - " + (name || ""))
+          );
+        }
+
+        const booksModalEl = document.getElementById("booksModal");
+        if (!booksModalEl) {
+          console.error("❌ Không tìm thấy booksModal element");
+          alert("❌ Không tìm thấy modal sách. Vui lòng tải lại trang.");
+          return;
+        }
+
+        // Hiện loading ngay
+        const contentEl = document.getElementById("booksContent");
+        if (contentEl) {
+          contentEl.innerHTML = `
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="mt-3 text-muted">Đang tải sách thư viện...</p>
+            </div>
+          `;
+        }
+
+        const booksModal = new bootstrap.Modal(booksModalEl);
+        booksModal.show();
+
+        // Load dữ liệu ngay sau khi show
+        try {
+          await window.loadLibraryBooks(id);
+        } catch (error) {
+          console.error("❌ Lỗi khi load sách:", error);
+          if (contentEl) {
+            contentEl.innerHTML = `
+              <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Lỗi:</strong> ${error.message}
+              </div>
+            `;
+          }
+        }
+      };
+
+      // Hàm load sách thư viện - Gọi API backend và render bảng sách trong modal
+      window.loadLibraryBooks = async function (libraryId) {
+        console.log("📚 loadLibraryBooks - libraryId:", libraryId);
+        const content = document.getElementById("booksContent");
+        if (!content) return;
+
+        try {
+          const response = await fetch("/admin/thu_vien/books/" + libraryId);
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Lỗi khi tải dữ liệu sách");
+          }
+
+          const books = data.books || [];
+
+          if (books.length === 0) {
+            content.innerHTML = `
+              <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle me-2"></i>
+                Thư viện này chưa có sách nào. Hãy dùng nút <strong>Thêm sách vào thư viện</strong> để thêm!
+              </div>
+            `;
+            return;
+          }
+
+          let rows = "";
+          books.forEach((book, i) => {
+            const ngayThem = book.ngay_them
+              ? new Date(book.ngay_them).toLocaleDateString("vi-VN")
+              : "—";
+            const slTrong = book.so_luong_trong_thu_vien ?? "—";
+            const slTon = book.slton ?? 0;
+            const slClass = slTon === 0
+              ? "text-danger fw-bold"
+              : slTon <= 5 ? "text-warning fw-bold" : "text-success fw-bold";
+            rows += `
+              <tr>
+                <td>${i + 1}</td>
+                <td><strong>${book.ten_sach || "—"}</strong></td>
+                <td>${book.tac_gia || "—"}</td>
+                <td><span class="badge bg-secondary">${book.ten_theloai || "—"}</span></td>
+                <td>${book.nam_xuat_ban || "—"}</td>
+                <td><span class="badge bg-primary">${slTrong}</span></td>
+                <td><span class="${slClass}">${slTon}</span></td>
+                <td><small class="text-muted">${ngayThem}</small></td>
+              </tr>`;
+          });
+
+          content.innerHTML = `
+            <div class="mb-3">
+              <span class="badge bg-success fs-6">
+                <i class="bi bi-check-circle me-1"></i>
+                Tổng: ${books.length} cuốn sách
+              </span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover table-striped align-middle">
+                <thead class="table-dark">
+                  <tr>
+                    <th>#</th><th>Tên sách</th><th>Tác giả</th>
+                    <th>Thể loại</th><th>Năm XB</th>
+                    <th>SL trong TV</th><th>SL tồn kho</th><th>Ngày thêm</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>`;
+
+        } catch (error) {
+          console.error("❌ Lỗi khi load sách thư viện:", error);
+          content.innerHTML = `
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <strong>Lỗi:</strong> ${error.message}
+            </div>`;
+        }
+      };
+
+      // Hàm mở modal sửa thư viện
+      window.openEditLibraryModal = async function (libraryId) {
+        console.log("📝 openEditLibraryModal - ID:", libraryId);
+        // Hàm này sẽ được định nghĩa đầy đủ trong script tag sau
+        // Tạm thời redirect đến trang update
+        window.location.href = `/admin/thu_vien/update/${libraryId}`;
+      };
+
+      // Hàm thêm sách vào thư viện sẽ được định nghĩa đầy đủ trong script tag sau modal
+      // Stub function đơn giản để tránh lỗi khi onclick được parse
+      window.addBookToLibrary = async function () {
+        console.log(
+          "📚 addBookToLibrary stub được gọi - hàm đầy đủ sẽ được định nghĩa sau"
+        );
+        // Hàm đầy đủ sẽ override hàm này trong script tag sau modal
+      };
+
+      // Hàm chọn ảnh - Stub function để tránh lỗi khi onclick được parse
+      window.selectImage = function () {
+        // Kiểm tra xem hàm đầy đủ đã được định nghĩa chưa
+        const fullFn = window.selectImage;
+        const fnStr = fullFn.toString();
+        // Nếu hàm đã được override (có "getElementById" và không có "stub")
+        if (fnStr.includes("getElementById") && !fnStr.includes("stub")) {
+          // Gọi hàm đầy đủ
+          return fullFn();
+        }
+        // Nếu chưa có hàm đầy đủ, đợi một chút và thử lại
+        setTimeout(() => {
+          const checkFn = window.selectImage;
+          const checkStr = checkFn.toString();
+          if (
+            checkStr.includes("getElementById") &&
+            !checkStr.includes("stub")
+          ) {
+            checkFn();
+          } else {
+            console.error(
+              "❌ Hàm selectImage chưa được load. Vui lòng refresh trang."
+            );
+          }
+        }, 100);
+      };
+
+      // Hàm chọn ảnh cho form sửa - Stub function
+      window.selectEditImage = function () {
+        // Kiểm tra xem hàm đầy đủ đã được định nghĩa chưa
+        const fullFn = window.selectEditImage;
+        const fnStr = fullFn.toString();
+        // Nếu hàm đã được override (có "getElementById" và không có "stub")
+        if (fnStr.includes("getElementById") && !fnStr.includes("stub")) {
+          // Gọi hàm đầy đủ
+          return fullFn();
+        }
+        // Nếu chưa có hàm đầy đủ, đợi một chút và thử lại
+        setTimeout(() => {
+          const checkFn = window.selectEditImage;
+          const checkStr = checkFn.toString();
+          if (
+            checkStr.includes("getElementById") &&
+            !checkStr.includes("stub")
+          ) {
+            checkFn();
+          } else {
+            console.error(
+              "❌ Hàm selectEditImage chưa được load. Vui lòng refresh trang."
+            );
+          }
+        }, 100);
+      };
+
+      // Hàm xử lý chọn ảnh - Stub function để tránh lỗi khi onchange được parse
+      window.handleImageSelection = function (input) {
+        // Kiểm tra xem hàm đầy đủ đã được định nghĩa chưa
+        const fullFn = window.handleImageSelection;
+        const fnStr = fullFn.toString();
+        // Nếu hàm đã được override (có "getElementById" và không có "stub")
+        if (fnStr.includes("getElementById") && !fnStr.includes("stub")) {
+          // Gọi hàm đầy đủ
+          return fullFn(input);
+        }
+        // Nếu chưa có hàm đầy đủ, đợi một chút và thử lại
+        setTimeout(() => {
+          const checkFn = window.handleImageSelection;
+          const checkStr = checkFn.toString();
+          if (
+            checkStr.includes("getElementById") &&
+            !checkStr.includes("stub")
+          ) {
+            checkFn(input);
+          } else {
+            console.error(
+              "❌ Hàm handleImageSelection chưa được load. Vui lòng refresh trang."
+            );
+          }
+        }, 100);
+      };
+
+      // Hàm xử lý chọn ảnh cho form sửa - Stub function
+      window.handleEditImageSelection = function (input) {
+        // Kiểm tra xem hàm đầy đủ đã được định nghĩa chưa
+        const fullFn = window.handleEditImageSelection;
+        const fnStr = fullFn.toString();
+        // Nếu hàm đã được override (có "getElementById" và không có "stub")
+        if (fnStr.includes("getElementById") && !fnStr.includes("stub")) {
+          // Gọi hàm đầy đủ
+          return fullFn(input);
+        }
+        // Nếu chưa có hàm đầy đủ, đợi một chút và thử lại
+        setTimeout(() => {
+          const checkFn = window.handleEditImageSelection;
+          const checkStr = checkFn.toString();
+          if (
+            checkStr.includes("getElementById") &&
+            !checkStr.includes("stub")
+          ) {
+            checkFn(input);
+          } else {
+            console.error(
+              "❌ Hàm handleEditImageSelection chưa được load. Vui lòng refresh trang."
+            );
+          }
+        }, 100);
+      };
+
+      console.log("✅ Các hàm global đã được định nghĩa trong head");
+      console.log(
+        "✅ handleDeleteLibraryClick:",
+        typeof window.handleDeleteLibraryClick
+      );
+      console.log(
+        "✅ handleViewBooksClick:",
+        typeof window.handleViewBooksClick
+      );
+      console.log(
+        "✅ openEditLibraryModal:",
+        typeof window.openEditLibraryModal
+      );
+    </script>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+          <a class="navbar-brand" href="/admin">
+            <i class="bi bi-building me-2"></i>Quản lý Thư Viện
+          </a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navMain"
+            aria-controls="navMain"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin">
+                  <i class="bi bi-house-door me-1"></i>Trang chủ
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="/admin/thu_vien">
+                  <i class="bi bi-building me-1"></i>Thư viện
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/the_loai">
+                  <i class="bi bi-tags me-1"></i>Thể loại
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/sach">
+                  <i class="bi bi-book me-1"></i>Sách
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/muon_sach">
+                  <i class="bi bi-journal-text me-1"></i>Mượn sách
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/don_hang">
+                  <i class="bi bi-cart-check me-1"></i>Đơn hàng
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/shop">
+                  <i class="bi bi-shop me-1"></i>Cửa hàng
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/">
+                  <i class="bi bi-geo-alt-fill me-1"></i>Xem bản đồ
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2> <i class="bi bi-building"></i> Quản lý Thư viện</h2>
+        <div>
+          <button
+            class="btn btn-success me-2"
+            data-bs-toggle="modal"
+            data-bs-target="#addBookToLibraryModal"
+          >
+            <i class="bi bi-book-plus"></i> Thêm sách vào thư viện
+          </button>
+          <a class="btn btn-primary" href="#addLibraryForm">
+            <i class="bi bi-plus-circle"></i> Thêm thư viện
+          </a>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Thêm Thư viện</h5>
+        </div>
+        <div class="card-body">
+          <form
+            id="addLibraryForm"
+            method="POST"
+            action="/admin/thu_vien/add"
+            enctype="multipart/form-data"
+          >
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">ID Thư viện</label>
+                <input
+                  type="text"
+                  name="ID_thuvien"
+                  class="form-control"
+                  placeholder="ID Thư viện"
+                  required
+                />
+              </div>
+              <div class="col-md-8">
+                <label class="form-label">Tên thư viện</label>
+                <input
+                  type="text"
+                  name="Ten_thuvien"
+                  class="form-control"
+                  placeholder="Tên thư viện"
+                  required
+                />
+              </div>
+              <div class="col-12">
+                <label class="form-label">Địa chỉ</label>
+                <input
+                  type="text"
+                  name="Dia_chi"
+                  class="form-control"
+                  placeholder="Địa chỉ"
+                />
+              </div>
+              <div class="col-12">
+                <div class="row g-3">
+                  <div class="col-6 col-md-3">
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="Wifi"
+                        id="wifi"
+                      />
+                      <label class="form-check-label" for="wifi">Wifi</label>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="Phongdoc"
+                        id="phongdoc"
+                      />
+                      <label class="form-check-label" for="phongdoc"
+                        >Phòng đọc</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="Canteen"
+                        id="canteen"
+                      />
+                      <label class="form-check-label" for="canteen"
+                        >Canteen</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="Dieuhoa"
+                        id="dieuhoa"
+                      />
+                      <label class="form-check-label" for="dieuhoa"
+                        >Điều hòa</label
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Latitude</label>
+                <input
+                  type="number"
+                  name="Latitude"
+                  placeholder="Latitude"
+                  step="any"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Longitude</label>
+                <input
+                  type="number"
+                  name="Longitude"
+                  placeholder="Longitude"
+                  step="any"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Loại thư viện</label>
+                <select name="phanloai" class="form-select" required>
+                  <option value="" disabled selected>Chọn loại thư viện</option>
+                  <option value="Thư viện công cộng">Thư viện công cộng</option>
+                  <option value="Thư viện tư nhân">Thư viện tư nhân</option>
+                  <option value="Thư viện trường học">
+                    Thư viện trường học
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Ảnh 360</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    name="Anh360Path"
+                    id="Anh360Path"
+                    class="form-control"
+                    placeholder="Đường dẫn ảnh hoặc chọn file"
+                    readonly
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="selectImage()"
+                  >
+                    <i class="bi bi-folder-open"></i> Chọn
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  name="Anh360"
+                  id="Anh360"
+                  accept="image/*"
+                  class="form-control mt-2"
+                  onchange="handleImageSelection(this)"
+                  style="display: none"
+                />
+                <small class="form-text text-muted">
+                  <i class="bi bi-info-circle"></i> Chọn ảnh từ máy tính để
+                  upload trực tiếp. Ảnh sẽ được lưu tự động vào hệ thống.
+                </small>
+                <div id="imagePreview" class="mt-2" style="display: none">
+                  <img
+                    id="previewImg"
+                    class="img-thumbnail"
+                    style="max-width: 200px; max-height: 200px"
+                  />
+                </div>
+              </div>
+              <div class="col-12">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  id="submitLibraryBtn"
+                  style="
+                    position: relative;
+                    z-index: 1000;
+                    pointer-events: auto;
+                  "
+                >
+                  <i class="bi bi-plus-circle me-2"></i>Thêm Thư viện
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div
+        id="errorMessage"
+        class="alert alert-danger"
+        style="display: none"
+      ></div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Danh sách các Thư viện</h5>
+        </div>
+        <div class="card-body">
+          <% if (!thuVien || thuVien.length === 0) { %>
+          <div class="alert alert-info text-center">
+            <h6 class="mb-2">Không có thư viện nào trong danh sách</h6>
+            <p class="mb-3">Bảng có thể trống hoặc có lỗi kết nối database</p>
+            <button onclick="testDatabase()" class="btn btn-outline-primary">
+              Kiểm tra Database
+            </button>
+          </div>
+          <% } else { %>
+          <div class="table-responsive">
+            <table
+              id="libraryTable"
+              class="table table-hover table-striped align-middle mb-0"
+            >
+              <thead class="table-light">
+                <tr>
+                  <th>ID Thư viện</th>
+                  <th>Tên Thư viện</th>
+                  <th>Địa chỉ</th>
+                  <th>Wifi</th>
+                  <th>Phòng đọc</th>
+                  <th>Canteen</th>
+                  <th>Điều hòa</th>
+                  <th>Latitude</th>
+                  <th>Longitude</th>
+                  <th>Loại thư viện</th>
+                  <th>Ảnh 360</th>
+                  <th>Sách</th>
+                  <th class="text-end">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% thuVien.forEach(function(tv) { %>
+                <tr data-id="<%= tv.id_thuvien %>">
+                  <td><%= tv.id_thuvien %></td>
+                  <td><%= tv.ten_thuvien %></td>
+                  <td><%= tv.dia_chi %></td>
+                  <td><%= tv.wifi ? 'Có' : 'Không' %></td>
+                  <td><%= tv.phongdoc ? 'Có' : 'Không' %></td>
+                  <td><%= tv.canteen ? 'Có' : 'Không' %></td>
+                  <td><%= tv.dieuhoa ? 'Có' : 'Không' %></td>
+                  <td><%= tv.latitude %></td>
+                  <td><%= tv.longitude %></td>
+                  <td><%= tv.phanloai || 'Không xác định' %></td>
+                  <td>
+                    <% if (tv.anh_360) { %>
+                    <a
+                      href="<%= tv.anh_360 %>"
+                      target="_blank"
+                      class="btn btn-sm btn-outline-secondary"
+                      >Xem ảnh</a
+                    >
+                    <% } else { %> Không có <% } %>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn-action btn-view"
+                      data-id="<%= tv.id_thuvien %>"
+                      data-name="<%= tv.ten_thuvien %>"
+                      onclick="event.stopPropagation(); handleViewBooksClick('<%= tv.id_thuvien %>', '<%= tv.ten_thuvien %>');"
+                      title="Xem sách trong thư viện"
+                      style="
+                        position: relative;
+                        z-index: 100;
+                        pointer-events: auto;
+                        cursor: pointer;
+                      "
+                    >
+                      <i class="bi bi-book"></i>
+                      <span>Xem sách</span>
+                    </button>
+                  </td>
+                  <td class="text-end">
+                    <div class="action-buttons">
+                      <button
+                        type="button"
+                        class="btn-action btn-edit"
+                        data-id="<%= tv.id_thuvien %>"
+                        title="Sửa thư viện"
+                        onclick="event.stopPropagation(); if(typeof openEditLibraryModal === 'function') { openEditLibraryModal('<%= tv.id_thuvien %>'); } else { window.location.href='/admin/thu_vien/update/<%= tv.id_thuvien %>'; }"
+                        style="
+                          position: relative;
+                          z-index: 100;
+                          pointer-events: auto;
+                          cursor: pointer;
+                        "
+                      >
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Sửa</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-action btn-delete"
+                        data-id="<%= tv.id_thuvien %>"
+                        data-name="<%= tv.ten_thuvien %>"
+                        title="Xóa thư viện"
+                        onclick="console.log('🖱️ Delete button clicked!'); event.preventDefault(); event.stopPropagation(); if(typeof window.handleDeleteLibraryClick === 'function') { window.handleDeleteLibraryClick('<%= tv.id_thuvien %>', '<%= tv.ten_thuvien %>'); } else { console.error('❌ handleDeleteLibraryClick not found!'); alert('Lỗi: Hàm xóa chưa được định nghĩa. Vui lòng refresh trang.'); }"
+                        style="
+                          position: relative;
+                          z-index: 100;
+                          pointer-events: auto !important;
+                          cursor: pointer !important;
+                        "
+                      >
+                        <i class="bi bi-trash"></i>
+                        <span>Xóa</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </main>
+
+    <div
+      class="modal fade"
+      id="booksModal"
+      tabindex="-1"
+      aria-labelledby="booksModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title" id="booksModalLabel">
+              <i class="bi bi-book me-2"></i>Quản lý sách thư viện
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="booksContent">
+              <div class="text-center">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Đang tải...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="addBookToLibraryModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Thêm sách vào thư viện</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addBookToLibraryForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="selectLibrary" class="form-label"
+                      >Chọn thư viện *</label
+                    >
+                    <select
+                      class="form-select"
+                      id="selectLibrary"
+                      name="library_id"
+                      required
+                    >
+                      <option value="">-- Chọn thư viện --</option>
+                      <% thuVien.forEach(function(tv) { %>
+                      <option value="<%= tv.id_thuvien %>">
+                        <%= tv.ten_thuvien %>
+                      </option>
+                      <% }); %>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="selectBook" class="form-label"
+                      >Chọn sách *</label
+                    >
+                    <select
+                      class="form-select"
+                      id="selectBook"
+                      name="book_id"
+                      required
+                    >
+                      <option value="">-- Chọn sách --</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="bookQuantity" class="form-label"
+                      >Số lượng *</label
+                    >
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="bookQuantity"
+                      name="quantity"
+                      min="1"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="bookReason" class="form-label"
+                      >Lý do thêm</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="bookReason"
+                      name="reason"
+                      placeholder="Ví dụ: Mua mới, tặng, chuyển từ thư viện khác..."
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="bookNote" class="form-label">Ghi chú</label>
+                <textarea
+                  class="form-control"
+                  id="bookNote"
+                  name="note"
+                  rows="3"
+                  placeholder="Ghi chú thêm về sách..."
+                ></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              onclick="addBookToLibrary()"
+            >
+              <i class="bi bi-plus-circle"></i> Thêm sách
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script định nghĩa hàm loadAllBooks NGAY SAU MODAL - Đảm bảo được định nghĩa sớm -->
+    <script>
+      // Hàm test API (có thể gọi từ console)
+      window.testLoadBooksAPI = async function () {
+        try {
+          console.log("🧪 Test API: /admin/thu_vien/all-books");
+          const response = await fetch("/admin/thu_vien/all-books");
+          const data = await response.json();
+          console.log("✅ Test thành công:", data);
+          return data;
+        } catch (error) {
+          console.error("❌ Test thất bại:", error);
+          return null;
+        }
+      };
+
+      // Hàm load TẤT CẢ sách từ bảng sach - Định nghĩa SỚM để có thể sử dụng ngay
+      window.loadAllBooks = async function () {
+        try {
+          console.log("📚 ===== BẮT ĐẦU LOAD TẤT CẢ SÁCH =====");
+
+          const bookSelect = document.getElementById("selectBook");
+          if (!bookSelect) {
+            console.error("❌ Không tìm thấy selectBook element");
+            console.error("❌ Đang tìm lại sau 200ms...");
+            setTimeout(() => {
+              const retrySelect = document.getElementById("selectBook");
+              if (retrySelect) {
+                console.log("✅ Tìm thấy selectBook sau retry");
+                window.loadAllBooks();
+              } else {
+                console.error("❌ Vẫn không tìm thấy selectBook");
+              }
+            }, 200);
+            return;
+          }
+
+          console.log("✅ Tìm thấy selectBook element");
+
+          bookSelect.innerHTML =
+            '<option value="">-- Đang tải sách... --</option>';
+          bookSelect.disabled = true;
+
+          const apiUrl = "/admin/thu_vien/all-books";
+          console.log("📡 Gọi API:", apiUrl);
+
+          const response = await fetch(apiUrl);
+          console.log("📥 Response status:", response.status);
+          console.log("📥 Response ok:", response.ok);
+
+          // Đọc response body một lần duy nhất
+          let responseData;
+          const contentType = response.headers.get("content-type") || "";
+
+          if (contentType.includes("application/json")) {
+            responseData = await response.json();
+          } else {
+            const textData = await response.text();
+            try {
+              responseData = JSON.parse(textData);
+            } catch (e) {
+              responseData = { error: textData };
+            }
+          }
+
+          // Kiểm tra response sau khi đã đọc
+          if (!response.ok) {
+            const errorText =
+              responseData.error ||
+              responseData.message ||
+              `HTTP ${response.status}`;
+            console.error("❌ Response error:", errorText);
+            throw new Error(
+              `HTTP error! status: ${response.status}, message: ${errorText}`
+            );
+          }
+
+          const data = responseData;
+          console.log("📥 Dữ liệu nhận được:", data);
+          console.log("📥 Success:", data.success);
+          console.log("📥 Số sách:", data.books ? data.books.length : 0);
+
+          bookSelect.innerHTML = '<option value="">-- Chọn sách --</option>';
+          bookSelect.disabled = false;
+
+          if (data.success && data.books && data.books.length > 0) {
+            console.log(
+              `✅ Tìm thấy ${data.books.length} sách, đang thêm vào dropdown...`
+            );
+
+            let addedCount = 0;
+            data.books.forEach((book) => {
+              const option = document.createElement("option");
+              option.value = book.id_sach;
+
+              // Hiển thị thông tin sách: Tên - Tác giả (Thể loại) - Số lượng tồn
+              const tacGia = book.tac_gia || "Không có";
+              const theLoai = book.ten_theloai || "Không có";
+              const slTon = book.slton || 0;
+
+              option.textContent = `${book.ten_sach} - ${tacGia} (${theLoai}) - Tồn: ${slTon}`;
+              option.dataset.available = slTon;
+              option.dataset.tongsl = book.tongsl || 0;
+
+              bookSelect.appendChild(option);
+              addedCount++;
+            });
+
+            console.log(`✅ Đã thêm ${addedCount} sách vào dropdown`);
+            console.log(
+              "✅ Dropdown hiện có",
+              bookSelect.options.length,
+              "options"
+            );
+          } else {
+            console.warn("⚠️ Không có sách nào trong response");
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "-- Không có sách nào trong hệ thống --";
+            option.disabled = true;
+            bookSelect.appendChild(option);
+          }
+
+          console.log("📚 ===== HOÀN THÀNH LOAD SÁCH =====");
+        } catch (error) {
+          console.error("❌ Lỗi khi load sách:", error);
+          console.error("❌ Error stack:", error.stack);
+          const bookSelect = document.getElementById("selectBook");
+          if (bookSelect) {
+            bookSelect.innerHTML = `<option value="">-- Lỗi: ${error.message} --</option>`;
+            bookSelect.disabled = false;
+          }
+          alert("Có lỗi xảy ra khi load danh sách sách: " + error.message);
+        }
+      };
+
+      console.log(
+        "✅ Hàm loadAllBooks đã được định nghĩa:",
+        typeof window.loadAllBooks
+      );
+
+      // Gắn event listener ngay khi hàm đã được định nghĩa
+      (function () {
+        function setupModalListener() {
+          const modal = document.getElementById("addBookToLibraryModal");
+          if (!modal) {
+            console.warn("⚠️ Modal chưa tồn tại, sẽ thử lại sau 200ms");
+            setTimeout(setupModalListener, 200);
+            return;
+          }
+
+          // Kiểm tra xem đã có listener chưa để tránh duplicate
+          if (modal.hasAttribute("data-modal-listener-attached")) {
+            console.log("✅ Event listener đã được gắn rồi");
+            return;
+          }
+
+          modal.setAttribute("data-modal-listener-attached", "true");
+
+          modal.addEventListener("show.bs.modal", function () {
+            console.log("📚 Modal event triggered - show.bs.modal");
+
+            // Reset dropdown sách về trạng thái ban đầu
+            const bookSelect = document.getElementById("selectBook");
+            if (bookSelect) {
+              bookSelect.innerHTML =
+                '<option value="">-- Chọn sách --</option>';
+              bookSelect.disabled = false;
+            }
+
+            // Reset dropdown thư viện
+            const librarySelect = document.getElementById("selectLibrary");
+            if (librarySelect) {
+              librarySelect.value = "";
+            }
+
+            // Load tất cả sách khi modal mở (sau khi modal đã hiển thị)
+            if (typeof window.loadAllBooks === "function") {
+              console.log("✅ Gọi window.loadAllBooks");
+              setTimeout(() => {
+                window.loadAllBooks();
+              }, 200);
+            } else {
+              console.error("❌ window.loadAllBooks không tồn tại!");
+            }
+          });
+
+          console.log("✅ Đã gắn event listener vào modal (inline script)");
+        }
+
+        // Chạy ngay nếu DOM đã sẵn sàng, nếu không thì đợi DOM ready
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", setupModalListener);
+        } else {
+          setupModalListener();
+        }
+      })();
+
+      // Hàm thêm sách vào thư viện - Định nghĩa SỚM để có thể gọi từ onclick
+      window.addBookToLibrary = async function () {
+        const form = document.getElementById("addBookToLibraryForm");
+        if (!form) {
+          alert("Lỗi: Không tìm thấy form thêm sách");
+          return;
+        }
+
+        const formData = new FormData(form);
+        const library_id = formData.get("library_id")?.trim();
+        const book_id = formData.get("book_id")?.trim();
+        const quantity = parseInt(formData.get("quantity"));
+        const reason = formData.get("reason")?.trim();
+        const note = formData.get("note")?.trim();
+
+        console.log("📚 Thêm sách vào thư viện:", {
+          library_id,
+          book_id,
+          quantity,
+          reason,
+          note,
+        });
+
+        // Validation
+        if (!library_id || !book_id || !quantity) {
+          alert(
+            "Vui lòng điền đầy đủ thông tin bắt buộc: Thư viện, Sách và Số lượng"
+          );
+          return;
+        }
+
+        if (quantity <= 0) {
+          alert("Số lượng phải lớn hơn 0");
+          return;
+        }
+
+        // Kiểm tra số lượng tồn từ option đã chọn
+        const selected =
+          document.getElementById("selectBook").selectedOptions[0];
+        const available = parseInt(selected?.dataset.available || "0");
+        const tongsl = parseInt(selected?.dataset.tongsl || "0");
+
+        console.log("📊 Thông tin sách:", {
+          available,
+          tongsl,
+          requested: quantity,
+        });
+
+        if (quantity > available) {
+          alert(
+            `Số lượng không được vượt quá ${available} quyển còn lại trong kho`
+          );
+          return;
+        }
+
+        const data = {
+          library_id,
+          book_id,
+          quantity,
+          reason: reason || "",
+          note: note || "",
+        };
+
+        try {
+          const submitBtn = document.querySelector(
+            "#addBookToLibraryModal .btn-success"
+          );
+          const originalText = submitBtn?.innerHTML;
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML =
+              '<span class="spinner-border spinner-border-sm me-2"></span>Đang thêm...';
+          }
+
+          const response = await fetch("/admin/thu_vien/add-book", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          // Đọc response body một lần duy nhất
+          let responseData;
+          const contentType = response.headers.get("content-type") || "";
+
+          if (contentType.includes("application/json")) {
+            responseData = await response.json();
+          } else {
+            const textData = await response.text();
+            try {
+              responseData = JSON.parse(textData);
+            } catch (e) {
+              responseData = { error: textData };
+            }
+          }
+
+          console.log("📥 Kết quả:", responseData);
+
+          if (response.ok && responseData.success) {
+            alert("✅ Thêm sách vào thư viện thành công!");
+            form.reset();
+            bootstrap.Modal.getInstance(
+              document.getElementById("addBookToLibraryModal")
+            )?.hide();
+            location.reload();
+          } else {
+            alert(
+              "❌ Lỗi: " +
+                (responseData.message || responseData.error || "Không xác định")
+            );
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalText;
+            }
+          }
+        } catch (error) {
+          console.error("❌ Lỗi khi thêm sách:", error);
+          alert("❌ Có lỗi xảy ra khi thêm sách: " + error.message);
+          const submitBtn = document.querySelector(
+            "#addBookToLibraryModal .btn-success"
+          );
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Thêm sách';
+          }
+        }
+      };
+
+      console.log(
+        "✅ Hàm addBookToLibrary đã được định nghĩa:",
+        typeof window.addBookToLibrary
+      );
+
+      // Hàm chọn ảnh - Định nghĩa SỚM để có thể gọi từ onclick
+      window.selectImage = function () {
+        const fileInput = document.getElementById("Anh360");
+        if (fileInput) {
+          fileInput.click();
+        } else {
+          console.error("❌ Không tìm thấy input file Anh360");
+        }
+      };
+
+      // Hàm chọn ảnh cho form sửa - Định nghĩa SỚM
+      window.selectEditImage = function () {
+        const fileInput = document.getElementById("editAnh360");
+        if (fileInput) {
+          fileInput.click();
+        } else {
+          console.error("❌ Không tìm thấy input file editAnh360");
+        }
+      };
+
+      console.log(
+        "✅ Hàm selectImage đã được định nghĩa:",
+        typeof window.selectImage
+      );
+      console.log(
+        "✅ Hàm selectEditImage đã được định nghĩa:",
+        typeof window.selectEditImage
+      );
+
+      // Hàm xử lý chọn ảnh - Định nghĩa SỚM để có thể gọi từ onchange
+      window.handleImageSelection = function (input) {
+        if (input && input.files && input.files[0]) {
+          const file = input.files[0];
+          const pathInput = document.getElementById("Anh360Path");
+          if (pathInput) {
+            pathInput.value = file.name;
+          }
+          previewImage(input);
+        }
+      };
+
+      // Hàm xử lý chọn ảnh cho form sửa - Định nghĩa SỚM
+      window.handleEditImageSelection = function (input) {
+        if (input && input.files && input.files[0]) {
+          const file = input.files[0];
+          const pathInput = document.getElementById("editAnh360Path");
+          if (pathInput) {
+            pathInput.value = file.name;
+          }
+          previewEditImage(input);
+        }
+      };
+
+      // Hàm preview ảnh - Định nghĩa SỚM
+      function previewImage(input) {
+        const preview = document.getElementById("imagePreview");
+        const previewImg = document.getElementById("previewImg");
+
+        if (input && input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            if (previewImg) {
+              previewImg.src = e.target.result;
+            }
+            if (preview) {
+              preview.style.display = "block";
+            }
+          };
+          reader.readAsDataURL(input.files[0]);
+        } else {
+          if (preview) {
+            preview.style.display = "none";
+          }
+        }
+      }
+
+      // Hàm preview ảnh cho form sửa - Định nghĩa SỚM
+      function previewEditImage(input) {
+        const preview = document.getElementById("editImagePreview");
+        const previewImg = document.getElementById("editPreviewImg");
+
+        if (input && input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            if (previewImg) {
+              previewImg.src = e.target.result;
+            }
+            if (preview) {
+              preview.style.display = "block";
+            }
+          };
+          reader.readAsDataURL(input.files[0]);
+        } else {
+          if (preview) {
+            preview.style.display = "none";
+          }
+        }
+      }
+
+      console.log(
+        "✅ Hàm handleImageSelection đã được định nghĩa:",
+        typeof window.handleImageSelection
+      );
+      console.log(
+        "✅ Hàm handleEditImageSelection đã được định nghĩa:",
+        typeof window.handleEditImageSelection
+      );
+    </script>
+
+    <script>
+          // Các hàm global đã được định nghĩa trong <head>
+          // Kiểm tra lại để đảm bảo chúng có sẵn
+          console.log("🔍 Kiểm tra các hàm global sau khi DOM ready:");
+          console.log("  - handleDeleteLibraryClick:", typeof window.handleDeleteLibraryClick);
+          console.log("  - handleViewBooksClick:", typeof window.handleViewBooksClick);
+          console.log("  - openEditLibraryModal:", typeof window.openEditLibraryModal);
+
+          if (typeof window.handleDeleteLibraryClick !== 'function') {
+            console.error("❌ handleDeleteLibraryClick chưa được định nghĩa!");
+          }
+
+          async function testDatabase() {
+            try {
+              const response = await fetch("/admin/thu_vien/test-data");
+              const data = await response.json();
+
+              if (data.success) {
+                alert(
+                  `Database OK!\nBảng thu_vien: ${data.tableExists}\nTổng bản ghi: ${data.totalRecords}\nCấu trúc: ${data.tableStructure.length} cột`
+                );
+                console.log("Database test result:", data);
+              } else {
+                alert(`Database Error: ${data.error}`);
+                console.error("Database test failed:", data);
+              }
+            } catch (error) {
+              alert(`Lỗi kết nối: ${error.message}`);
+              console.error("Test failed:", error);
+            }
+          }
+
+          // Thêm thư viện mới
+          function initFormSubmit() {
+            console.log("🔧 Đang setup form submit handler...");
+            const addLibraryForm = document.getElementById("addLibraryForm");
+            if (!addLibraryForm) {
+              console.error("❌ Không tìm thấy form addLibraryForm");
+              return false;
+            }
+            console.log("✅ Tìm thấy form addLibraryForm");
+            setupFormSubmit(addLibraryForm);
+            return true;
+          }
+
+          // Đảm bảo chạy sau khi DOM ready
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", function() {
+              if (!initFormSubmit()) {
+                // Retry sau 500ms nếu không tìm thấy
+                setTimeout(() => {
+                  initFormSubmit();
+                }, 500);
+              }
+            });
+          } else {
+            // DOM đã sẵn sàng
+            if (!initFormSubmit()) {
+              setTimeout(() => {
+                initFormSubmit();
+              }, 500);
+            }
+          }
+
+          function setupFormSubmit(form) {
+            // Kiểm tra xem đã có listener chưa
+            if (form.hasAttribute("data-submit-handler-attached")) {
+              console.log("⚠️ Form submit handler đã được gắn rồi");
+              return;
+            }
+
+            form.setAttribute("data-submit-handler-attached", "true");
+
+            form.addEventListener("submit", async function(event) {
+              console.log("📝 Form submit event triggered!");
+              // QUAN TRỌNG: preventDefault phải được gọi đầu tiên
+              event.preventDefault();
+              event.stopPropagation();
+              event.stopImmediatePropagation();
+
+              const errorDiv = document.getElementById("errorMessage");
+              const submitBtn = document.getElementById("submitLibraryBtn") || event.target.querySelector('button[type="submit"]');
+
+              if (!errorDiv) {
+                console.error("❌ Không tìm thấy errorDiv");
+                alert("Lỗi: Không tìm thấy phần tử hiển thị lỗi");
+                return;
+              }
+
+              if (!submitBtn) {
+                console.error("❌ Không tìm thấy submitBtn");
+                errorDiv.className = "alert alert-danger";
+                errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Lỗi: Không tìm thấy nút submit';
+                errorDiv.style.display = "block";
+                return;
+              }
+
+              const originalBtnText = submitBtn.innerHTML;
+
+              errorDiv.style.display = "none";
+              submitBtn.disabled = true;
+              submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang thêm...';
+
+              const formData = new FormData(event.target);
+
+              // Validation đầy đủ
+              const ID_thuvien = formData.get("ID_thuvien")?.trim();
+              const Ten_thuvien = formData.get("Ten_thuvien")?.trim();
+              const phanloai = formData.get("phanloai")?.trim();
+
+              if (!ID_thuvien || !Ten_thuvien || !phanloai) {
+                errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Vui lòng điền đầy đủ thông tin bắt buộc: ID thư viện, Tên thư viện và Loại thư viện';
+                errorDiv.style.display = "block";
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
+              }
+
+              console.log('📤 Gửi dữ liệu thư viện:', {
+                ID_thuvien,
+                Ten_thuvien,
+                phanloai,
+                Dia_chi: formData.get("Dia_chi"),
+                Wifi: formData.get("Wifi"),
+                Phongdoc: formData.get("Phongdoc"),
+                Canteen: formData.get("Canteen"),
+                Dieuhoa: formData.get("Dieuhoa"),
+                Latitude: formData.get("Latitude"),
+                Longitude: formData.get("Longitude"),
+                hasFile: formData.get("Anh360") ? true : false
+              });
+
+              try {
+                const response = await fetch("/admin/thu_vien/add", {
+                  method: "POST",
+                  headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                  },
+                  body: formData,
+                });
+
+                console.log('📥 Response status:', response.status);
+                console.log('📥 Response ok:', response.ok);
+                console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+
+                // Kiểm tra status code trước
+                if (!response.ok) {
+                  let errorText = "";
+                  try {
+                    errorText = await response.text();
+                  } catch (textError) {
+                    errorText = `HTTP ${response.status}: ${response.statusText}`;
+                  }
+                  console.error("❌ Server error (status not ok):", errorText);
+                  errorDiv.className = "alert alert-danger";
+                  errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i><strong>Lỗi server (${response.status}):</strong> ${errorText.substring(0, 200)}`;
+                  errorDiv.style.display = "block";
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = originalBtnText;
+                  return;
+                }
+
+                // Thử parse JSON - chỉ parse một lần
+                let result;
+                const contentType = response.headers.get("content-type") || "";
+
+                try {
+                  // Luôn thử parse JSON trước
+                  const responseText = await response.text();
+                  console.log("📥 Response text:", responseText.substring(0, 200));
+
+                  try {
+                    result = JSON.parse(responseText);
+                    console.log('📥 Parsed JSON:', result);
+                  } catch (parseError) {
+                    // Nếu không parse được JSON, coi như lỗi
+                    console.error("❌ Không thể parse JSON:", parseError);
+                    errorDiv.className = "alert alert-danger";
+                    errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i><strong>Lỗi:</strong> Server trả về dữ liệu không hợp lệ: ${responseText.substring(0, 100)}`;
+                    errorDiv.style.display = "block";
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    return;
+                  }
+                } catch (readError) {
+                  console.error("❌ Lỗi khi đọc response:", readError);
+                  errorDiv.className = "alert alert-danger";
+                  errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i><strong>Lỗi:</strong> Không thể đọc response từ server`;
+                  errorDiv.style.display = "block";
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = originalBtnText;
+                  return;
+                }
+
+                // Xử lý kết quả
+                if (result && result.success) {
+                  console.log("✅ Thêm thư viện thành công!");
+                  errorDiv.className = "alert alert-success";
+                  errorDiv.innerHTML = `<i class="bi bi-check-circle me-2"></i>Thêm thư viện thành công! Đang tải lại trang...`;
+                  errorDiv.style.display = "block";
+
+                  // Reset form
+                  event.target.reset();
+                  const imagePreview = document.getElementById("imagePreview");
+                  if (imagePreview) {
+                    imagePreview.style.display = "none";
+                  }
+
+                  // Reload sau 1 giây
+                  setTimeout(() => {
+                    console.log("🔄 Reloading page...");
+                    window.location.reload();
+                  }, 1000);
+                } else {
+                  console.error("❌ Thêm thư viện thất bại:", result);
+                  errorDiv.className = "alert alert-danger";
+                  errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i><strong>Lỗi:</strong> ${result?.error || result?.message || 'Không xác định được lỗi'}`;
+                  errorDiv.style.display = "block";
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = originalBtnText;
+                }
+              } catch (error) {
+                console.error("❌ Network error:", error);
+                console.error("❌ Error stack:", error.stack);
+                errorDiv.className = "alert alert-danger";
+                errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i><strong>Lỗi kết nối:</strong> ${error.message}`;
+                errorDiv.style.display = "block";
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+              }
+            });
+            console.log("✅ Form submit handler đã được gắn thành công");
+          }
+
+          // Hàm xử lý sửa thư viện - Định nghĩa ở global scope
+          window.handleEditLibrary = async function(id) {
+            console.log("✏️ Sửa thư viện ID:", id);
+            if (id) {
+              window.location.href = `/admin/thu_vien/update/${id}`;
+            } else {
+              alert("❌ Không tìm thấy ID thư viện");
+            }
+          };
+
+          // Hàm xử lý xóa thư viện - Định nghĩa ở global scope
+          window.handleDeleteLibrary = async function(id) {
+            console.log("🗑️ Xóa thư viện ID:", id);
+
+            if (!id) {
+              alert("❌ Không tìm thấy ID thư viện");
+              return;
+            }
+
+            const row = document.querySelector(`[data-id="${id}"]`)?.closest("tr");
+            const libraryName = row?.querySelector("td:nth-child(2)")?.textContent?.trim() || "thư viện này";
+
+            if (confirm(`Bạn có chắc chắn muốn xóa thư viện "${libraryName}"?\n\nLưu ý: Tất cả sách trong thư viện này cũng sẽ bị xóa khỏi danh sách.`)) {
+              try {
+                console.log("🗑️ Đang gửi yêu cầu xóa thư viện ID:", id);
+                const response = await fetch(`/admin/thu_vien/delete/${id}`, {
+                  method: "DELETE",
+                  headers: {
+                    "Content-Type": "application/json"
+                  }
+                });
+
+                console.log("📥 Response status:", response.status);
+
+                let result;
+                try {
+                  result = await response.json();
+                } catch (jsonError) {
+                  const text = await response.text();
+                  console.error("❌ Không parse được JSON:", text);
+                  throw new Error(`Server trả về lỗi: ${text}`);
+                }
+
+                console.log("📥 Response data:", result);
+
+                if (response.ok && result.success) {
+                  alert("✅ " + (result.message || "Xóa thư viện thành công!"));
+                  window.location.reload();
+                } else {
+                  alert("❌ Lỗi: " + (result.error || "Không thể xóa thư viện"));
+                  console.error("Lỗi xóa thư viện:", result);
+                }
+              } catch (error) {
+                console.error("❌ Lỗi khi gửi yêu cầu xóa:", error);
+                alert("❌ Lỗi kết nối: " + error.message);
+              }
+            }
+          }
+
+          // Event delegation đơn giản và trực tiếp cho table
+          function setupTableEventDelegation() {
+            const libraryTableEl = document.querySelector("#libraryTable");
+            if (libraryTableEl) {
+              // Kiểm tra xem đã gắn listener chưa
+              if (libraryTableEl.hasAttribute("data-events-attached")) {
+                console.log("✅ Event delegation đã được gắn rồi");
+                return;
+              }
+
+              console.log("✅ Tìm thấy #libraryTable, đang gắn event delegation...");
+
+              // Kiểm tra số lượng buttons
+              const editButtons = libraryTableEl.querySelectorAll(".btn-edit");
+              const deleteButtons = libraryTableEl.querySelectorAll(".btn-delete");
+              const booksButtons = libraryTableEl.querySelectorAll(".btn-view");
+              console.log(`📊 Tìm thấy ${editButtons.length} nút Sửa, ${deleteButtons.length} nút Xóa, ${booksButtons.length} nút Xem sách`);
+
+              libraryTableEl.setAttribute("data-events-attached", "true");
+
+              libraryTableEl.addEventListener("click", async function(event) {
+              console.log("🖱️ Click detected on table, target:", event.target);
+
+              // Tìm button được click
+              const editBtn = event.target.closest(".btn-edit");
+              const deleteBtn = event.target.closest(".btn-delete");
+              const booksBtn = event.target.closest(".btn-view");
+
+              console.log("🔍 Button check:", { editBtn: !!editBtn, deleteBtn: !!deleteBtn, booksBtn: !!booksBtn });
+
+              if (editBtn) {
+                event.preventDefault();
+                event.stopPropagation();
+                const id = editBtn.dataset.id;
+                console.log("✏️ Click Sửa - ID:", id);
+                if (id) {
+                  // Mở modal và load dữ liệu
+                  openEditLibraryModal(id);
+                } else {
+                  alert("❌ Không tìm thấy ID thư viện");
+                }
+                return;
+              }
+
+              if (deleteBtn) {
+                event.preventDefault();
+                event.stopPropagation();
+                const id = deleteBtn.dataset.id;
+                console.log("🗑️ Click Xóa - ID:", id);
+
+                if (!id) {
+                  alert("❌ Không tìm thấy ID thư viện");
+                  return;
+                }
+
+                const row = deleteBtn.closest("tr");
+                const libraryName = row?.querySelector("td:nth-child(2)")?.textContent?.trim() || "thư viện này";
+
+                if (confirm(`Bạn có chắc chắn muốn xóa thư viện "${libraryName}"?\n\nLưu ý: Tất cả sách trong thư viện này cũng sẽ bị xóa khỏi danh sách.`)) {
+                  try {
+                    console.log("🗑️ Đang gửi yêu cầu xóa thư viện ID:", id);
+                    const response = await fetch(`/admin/thu_vien/delete/${id}`, {
+                      method: "DELETE",
+                      headers: {
+                        "Content-Type": "application/json"
+                      }
+                    });
+
+                    console.log("📥 Response status:", response.status);
+
+                    let result;
+                    try {
+                      result = await response.json();
+                    } catch (jsonError) {
+                      const text = await response.text();
+                      console.error("❌ Không parse được JSON:", text);
+                      throw new Error(`Server trả về lỗi: ${text}`);
+                    }
+
+                    console.log("📥 Response data:", result);
+
+                    if (response.ok && result.success) {
+                      alert("✅ " + (result.message || "Xóa thư viện thành công!"));
+                      window.location.reload();
+                    } else {
+                      alert("❌ Lỗi: " + (result.error || "Không thể xóa thư viện"));
+                      console.error("Lỗi xóa thư viện:", result);
+                    }
+                  } catch (error) {
+                    console.error("❌ Lỗi khi gửi yêu cầu xóa:", error);
+                    alert("❌ Lỗi kết nối: " + error.message);
+                  }
+                }
+                return;
+              }
+
+              if (booksBtn) {
+                event.preventDefault();
+                event.stopPropagation();
+                const id = booksBtn.dataset.id;
+                const name = booksBtn.dataset.name || "";
+                console.log("📚 Click Xem sách - ID:", id, "Name:", name);
+
+                const labelEl = document.getElementById("booksModalLabel");
+                if (labelEl) {
+                  labelEl.textContent = "";
+                  const icon = document.createElement("i");
+                  icon.className = "bi bi-book me-2";
+                  labelEl.appendChild(icon);
+                  labelEl.appendChild(document.createTextNode("Quản lý sách - " + name));
+                }
+
+                const booksModal = new bootstrap.Modal(
+                  document.getElementById("booksModal")
+                );
+                booksModal.show();
+
+                await loadLibraryBooks(id);
+                return;
+              }
+              });
+
+              console.log("✅ Đã gắn event delegation vào table thành công");
+            } else {
+              console.warn("⚠️ Không tìm thấy #libraryTable, sẽ thử lại sau 200ms");
+              setTimeout(setupTableEventDelegation, 200);
+            }
+          }
+
+          // Chạy sau khi DOM ready
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", function() {
+              console.log("📄 DOM Content Loaded - Setup table events");
+              setTimeout(setupTableEventDelegation, 100);
+            });
+          } else {
+            console.log("📄 DOM đã sẵn sàng - Setup table events");
+            setTimeout(setupTableEventDelegation, 100);
+          }
+
+          console.log("✅ Page script loaded successfully");
+
+          // Các hàm handleDeleteLibraryClick, handleViewBooksClick, openEditLibraryModal
+          // đã được định nghĩa trong <head> để đảm bảo có sẵn khi onclick được parse
+          // Không cần định nghĩa lại ở đây
+
+          // ===== CÁC HÀM XỬ LÝ MODAL SỬA THƯ VIỆN =====
+
+          // Hàm mở modal sửa và load dữ liệu - Override định nghĩa stub trong head
+          window.openEditLibraryModal = async function(libraryId) {
+            try {
+              console.log("📝 Đang load dữ liệu thư viện ID:", libraryId);
+
+              // Hiển thị loading
+              const modal = new bootstrap.Modal(document.getElementById("editLibraryModal"));
+              modal.show();
+
+              // Disable form trong khi load
+              const form = document.getElementById("editLibraryFormModal");
+              form.querySelectorAll("input, select, button").forEach(el => el.disabled = true);
+
+              // Fetch dữ liệu thư viện từ API JSON thay vì parse HTML
+              const response = await fetch(`/admin/thu_vien/api/${libraryId}`);
+
+              if (!response.ok) {
+                // Fallback: fetch từ route update và parse HTML
+                const htmlResponse = await fetch(`/admin/thu_vien/update/${libraryId}`);
+                if (!htmlResponse.ok) {
+                  throw new Error(`HTTP error! status: ${htmlResponse.status}`);
+                }
+                const html = await htmlResponse.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const formData = doc.querySelector("form");
+                if (!formData) {
+                  throw new Error("Không tìm thấy dữ liệu thư viện");
+                }
+
+                // Điền dữ liệu từ HTML form
+                document.getElementById("editLibraryId").value = libraryId;
+                document.getElementById("editLibraryIdDisplay").value = libraryId;
+                document.getElementById("editTenThuvien").value = formData.querySelector('input[name="Ten_thuvien"]')?.value || "";
+                document.getElementById("editDiaChi").value = formData.querySelector('input[name="Dia_chi"]')?.value || "";
+                document.getElementById("editLatitude").value = formData.querySelector('input[name="Latitude"]')?.value || "";
+                document.getElementById("editLongitude").value = formData.querySelector('input[name="Longitude"]')?.value || "";
+
+                document.getElementById("editWifi").checked = formData.querySelector('input[name="Wifi"]')?.checked || false;
+                document.getElementById("editPhongdoc").checked = formData.querySelector('input[name="Phongdoc"]')?.checked || false;
+                document.getElementById("editCanteen").checked = formData.querySelector('input[name="Canteen"]')?.checked || false;
+                document.getElementById("editDieuhoa").checked = formData.querySelector('input[name="Dieuhoa"]')?.checked || false;
+
+                const phanloaiValue = formData.querySelector('select[name="phanloai"]')?.value || "";
+                document.getElementById("editPhanloai").value = phanloaiValue;
+
+                const currentAnh360 = formData.querySelector('input[name="currentAnh360"]')?.value || "";
+                document.getElementById("editCurrentAnh360").value = currentAnh360;
+                document.getElementById("editAnh360Path").value = currentAnh360;
+
+                const currentImageDiv = document.getElementById("editCurrentImage");
+                if (currentAnh360) {
+                  currentImageDiv.innerHTML = `
+                    <p class="mb-1"><small>Ảnh hiện tại:</small></p>
+                    <a href="${currentAnh360}" target="_blank" class="btn btn-sm btn-outline-info">
+                      <i class="bi bi-image"></i> Xem ảnh hiện tại
+                    </a>
+                  `;
+                } else {
+                  currentImageDiv.innerHTML = "";
+                }
+              } else {
+                // Nếu có API JSON, sử dụng nó
+                const data = await response.json();
+                if (data.success && data.library) {
+                  const lib = data.library;
+                  document.getElementById("editLibraryId").value = lib.id_thuvien;
+                  document.getElementById("editLibraryIdDisplay").value = lib.id_thuvien;
+                  document.getElementById("editTenThuvien").value = lib.ten_thuvien || "";
+                  document.getElementById("editDiaChi").value = lib.dia_chi || "";
+                  document.getElementById("editLatitude").value = lib.latitude || "";
+                  document.getElementById("editLongitude").value = lib.longitude || "";
+
+                  document.getElementById("editWifi").checked = lib.wifi || false;
+                  document.getElementById("editPhongdoc").checked = lib.phongdoc || false;
+                  document.getElementById("editCanteen").checked = lib.canteen || false;
+                  document.getElementById("editDieuhoa").checked = lib.dieuhoa || false;
+
+                  document.getElementById("editPhanloai").value = lib.phanloai || "";
+
+                  const currentAnh360 = lib.anh_360 || "";
+                  document.getElementById("editCurrentAnh360").value = currentAnh360;
+                  document.getElementById("editAnh360Path").value = currentAnh360;
+
+                  const currentImageDiv = document.getElementById("editCurrentImage");
+                  if (currentAnh360) {
+                    currentImageDiv.innerHTML = `
+                      <p class="mb-1"><small>Ảnh hiện tại:</small></p>
+                      <a href="${currentAnh360}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-image"></i> Xem ảnh hiện tại
+                      </a>
+                    `;
+                  } else {
+                    currentImageDiv.innerHTML = "";
+                  }
+                }
+              }
+
+              // Setup nút "Sửa chi tiết"
+              document.getElementById("btnEditInPage").onclick = function() {
+                modal.hide();
+                window.location.href = `/admin/thu_vien/update/${libraryId}`;
+              };
+
+              // Enable form
+              form.querySelectorAll("input, select, button").forEach(el => el.disabled = false);
+
+              console.log("✅ Đã load dữ liệu thư viện thành công");
+            } catch (error) {
+              console.error("❌ Lỗi khi load dữ liệu thư viện:", error);
+              alert("❌ Lỗi khi load dữ liệu thư viện: " + error.message);
+              bootstrap.Modal.getInstance(document.getElementById("editLibraryModal"))?.hide();
+            }
+          }
+
+          // Hàm submit form sửa thư viện
+          async function submitEditLibrary(event) {
+            // Ngăn form submit mặc định nếu có event
+            if (event) {
+              event.preventDefault();
+            }
+
+            const form = document.getElementById("editLibraryFormModal");
+            const errorDiv = document.getElementById("editErrorMessage");
+
+            // Kiểm tra form tồn tại
+            if (!form) {
+              console.error("❌ Không tìm thấy form editLibraryFormModal");
+              if (errorDiv) {
+                errorDiv.textContent = "Lỗi: Không tìm thấy form";
+                errorDiv.style.display = "block";
+              }
+              return;
+            }
+
+            // Tìm submit button trong form
+            const submitBtn = form.querySelector('button[type="submit"]') ||
+                             (event && event.target) ||
+                             document.querySelector('#editLibraryModal button[type="submit"]');
+
+            if (!submitBtn) {
+              console.error("❌ Không tìm thấy submit button");
+              if (errorDiv) {
+                errorDiv.textContent = "Lỗi: Không tìm thấy nút submit";
+                errorDiv.style.display = "block";
+              }
+              return;
+            }
+
+            const originalBtnText = submitBtn.innerHTML;
+
+            errorDiv.style.display = "none";
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang cập nhật...';
+
+            const formData = new FormData(form);
+            const libraryId = formData.get("ID_thuvien");
+
+            try {
+              const response = await fetch(`/admin/thu_vien/update/${libraryId}`, {
+                method: "POST",
+                body: formData,
+              });
+
+              if (response.ok) {
+                if (response.redirected) {
+                  window.location.href = response.url;
+                } else {
+                  const data = await response.json();
+                  if (data.success) {
+                    alert("✅ Cập nhật thư viện thành công!");
+                    bootstrap.Modal.getInstance(document.getElementById("editLibraryModal"))?.hide();
+                    window.location.reload();
+                  } else {
+                    throw new Error(data.error || "Có lỗi xảy ra");
+                  }
+                }
+              } else {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP error! status: ${response.status}`);
+              }
+            } catch (error) {
+              console.error("Lỗi khi cập nhật:", error);
+              errorDiv.textContent = `Lỗi: ${error.message}`;
+              errorDiv.style.display = "block";
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalBtnText;
+            }
+          }
+
+          // Hàm selectEditImage đã được định nghĩa trong script tag đầu tiên sau modal
+          // Không cần định nghĩa lại ở đây
+
+          // Hàm handleEditImageSelection, previewEditImage và previewImage đã được định nghĩa trong script tag đầu tiên sau modal
+          // Không cần định nghĩa lại ở đây
+
+          // Hàm selectImage và handleImageSelection đã được định nghĩa trong script tag đầu tiên sau modal
+          // Không cần định nghĩa lại ở đây
+
+          function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add("border-primary");
+          }
+          function handleDragLeave(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove("border-primary");
+          }
+          function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove("border-primary");
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              const file = files[0];
+              if (file.type.startsWith("image/")) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                const fileInput = document.getElementById("Anh360");
+                fileInput.files = dataTransfer.files;
+                handleImageSelection(fileInput);
+              } else {
+                alert("Chỉ chấp nhận file ảnh!");
+              }
+            }
+          }
+
+          window.loadLibraryBooks = async function loadLibraryBooks(libraryId) {
+            const content = document.getElementById("booksContent");
+            if (!content) {
+              console.error("❌ Không tìm thấy booksContent element");
+              return;
+            }
+
+            // Validate libraryId trước khi gọi API
+            if (!libraryId || libraryId === "" || libraryId === "undefined" || libraryId === "null") {
+              console.error("❌ Library ID không hợp lệ:", libraryId);
+              content.innerHTML = `
+                <div class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Lỗi:</strong> ID thư viện không hợp lệ. Vui lòng chọn thư viện hợp lệ.
+                </div>
+              `;
+              return;
+            }
+
+            // Kiểm tra nếu libraryId là số hợp lệ
+            const idNum = parseInt(libraryId);
+            if (isNaN(idNum)) {
+              console.error("❌ Library ID không phải là số:", libraryId);
+              content.innerHTML = `
+                <div class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Lỗi:</strong> ID thư viện không hợp lệ. Vui lòng chọn thư viện hợp lệ.
+                </div>
+              `;
+              return;
+            }
+
+            try {
+              console.log("📚 Bắt đầu load sách cho thư viện ID:", libraryId);
+
+              content.innerHTML = `
+                <div class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                  </div>
+                  <p class="mt-3 text-muted">Đang tải sách thư viện...</p>
+                </div>
+              `;
+
+              const url = `/admin/thu_vien/books/${idNum}`;
+              console.log("📡 Gọi API:", url);
+
+              const response = await fetch(url);
+              console.log("📥 Response status:", response.status);
+              console.log("📥 Response ok:", response.ok);
+
+              // Đọc response body một lần duy nhất
+              let responseData;
+              const contentType = response.headers.get("content-type") || "";
+
+              if (contentType.includes("application/json")) {
+                responseData = await response.json();
+              } else {
+                const textData = await response.text();
+                try {
+                  responseData = JSON.parse(textData);
+                } catch (e) {
+                  responseData = { error: textData };
+                }
+              }
+
+              // Kiểm tra status code sau khi đã đọc
+              if (!response.ok) {
+                const errorMessage =
+                  responseData.error ||
+                  responseData.message ||
+                  `HTTP ${response.status}`;
+                throw new Error(errorMessage);
+              }
+
+              const data = responseData;
+              console.log("📥 Response data:", data);
+
+              // Kiểm tra success
+              if (data.success) {
+                console.log("✅ Load sách thành công, số lượng:", data.books?.length || 0);
+                if (typeof window.renderBooksContent === "function") {
+                  window.renderBooksContent(data.library, data.books || []);
+                } else {
+                  console.error("❌ renderBooksContent chưa được định nghĩa");
+                  content.innerHTML = `
+                    <div class="alert alert-danger">
+                      <i class="bi bi-exclamation-triangle me-2"></i>
+                      <strong>Lỗi:</strong> Hàm renderBooksContent chưa được định nghĩa
+                    </div>
+                  `;
+                }
+              } else {
+                console.error("❌ Server trả về success: false", data);
+                content.innerHTML = `
+                  <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Lỗi từ server:</strong> ${data.error || data.message || "Không xác định được lỗi"}
+                  </div>
+                `;
+              }
+            } catch (error) {
+              console.error("❌ Lỗi khi tải sách:", error);
+              console.error("❌ Error stack:", error.stack);
+              content.innerHTML = `
+                <div class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Lỗi:</strong> ${error.message}
+                  <br><small class="text-muted">URL: /admin/thu_vien/books/${libraryId}</small>
+                  <br><button class="btn btn-sm btn-outline-danger mt-2" onclick="loadLibraryBooks(${libraryId})">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Thử lại
+                  </button>
+                </div>
+              `;
+            }
+          }
+
+          window.renderBooksContent = function renderBooksContent(library, books) {
+            const content = document.getElementById("booksContent");
+            if (!content) {
+              console.error("❌ Không tìm thấy booksContent element trong renderBooksContent");
+              return;
+            }
+
+            // Đảm bảo các hàm helper đã được định nghĩa
+            if (typeof window.escapeForTemplate !== "function" || typeof window.escapeHTML !== "function") {
+              console.error("❌ Các hàm helper escapeForTemplate hoặc escapeHTML chưa được định nghĩa");
+              content.innerHTML = `
+                <div class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Lỗi:</strong> Các hàm helper chưa được định nghĩa
+                </div>
+              `;
+              return;
+            }
+
+            const libName = window.escapeForTemplate(window.escapeHTML(library.ten_thuvien || ""));
+            const libAddr = window.escapeForTemplate(window.escapeHTML(library.dia_chi || ""));
+            let html = `
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <h6><i class="bi bi-building me-2"></i>Thư viện: ${libName}</h6>
+                  <p class="text-muted"><i class="bi bi-geo-alt me-2"></i>${libAddr}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                  <button class="btn btn-success" onclick="showAddBookModal(${library.id_thuvien})">
+                    <i class="bi bi-plus-circle me-2"></i>Thêm sách
+                  </button>
+                </div>
+              </div>
+            `;
+
+            if (books.length === 0) {
+              html += `
+                <div class="alert alert-info text-center">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Thư viện này chưa có sách nào. Hãy thêm sách vào thư viện!
+                </div>
+              `;
+            } else {
+              html += `
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>ID</th>
+                        <th>Tên sách</th>
+                        <th>Tác giả</th>
+                        <th>Thể loại</th>
+                        <th>Số lượng trong thư viện</th>
+                        <th>Tổng số lượng</th>
+                        <th>Ngày thêm</th>
+                        <th>File số</th>
+                        <th>Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+              `;
+              books.forEach((book) => {
+                const tenSach = window.escapeForTemplate(window.escapeHTML(book.ten_sach || ""));
+                const tacGia = window.escapeForTemplate(window.escapeHTML(book.tac_gia || "Không có"));
+                const theLoai = window.escapeForTemplate(window.escapeHTML(book.ten_theloai || "Không có"));
+                const digitalFile = window.escapeForTemplate(book.digital_file || "");
+                const ngayThem = new Date(book.ngay_them).toLocaleDateString("vi-VN");
+                html += `
+                  <tr>
+                    <td>${book.id_sach}</td>
+                    <td><strong>${tenSach}</strong></td>
+                    <td>${tacGia}</td>
+                    <td>${theLoai}</td>
+                    <td>
+                      <div class="input-group input-group-sm" style="width: 120px;">
+                        <input type="number" class="form-control" value="${book.so_luong_trong_thu_vien || book.so_luong || 0}"
+                               min="0" max="${book.tongsl || 0}"
+                               onchange="updateBookQuantity(${library.id_thuvien}, ${book.id_sach}, this.value)"
+                        />
+                        <span class="input-group-text">quyển</span>
+                      </div>
+                    </td>
+                    <td>${book.tongsl || 0}</td>
+                    <td>${ngayThem}</td>
+                    <td>
+                      ${
+                        book.digital_file
+                          ? `<a href="${digitalFile}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                              <i class="bi bi-file-earmark-pdf"></i>
+                            </a>`
+                          : '<span class="text-muted">Không có</span>'
+                      }
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-danger" onclick="removeBookFromLibrary(${library.id_thuvien}, ${book.id_sach})">
+                        <i class="bi bi-trash"></i> Xóa
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              });
+              html += `
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            }
+            content.innerHTML = html;
+          }
+
+          async function removeBookFromLibrary(libraryId, bookId) {
+            if (!confirm("Bạn có chắc chắn muốn xóa sách này khỏi thư viện?\n\nLưu ý: Số lượng sách sẽ được trả lại vào kho.")) {
+              return;
+            }
+            try {
+              console.log("🗑️ Đang xóa sách khỏi thư viện:", { libraryId, bookId });
+              const response = await fetch(
+                `/admin/thu_vien/books/${libraryId}/remove/${bookId}`,
+                {
+                  method: "DELETE",
+                  headers: {
+                    "Content-Type": "application/json"
+                  }
+                }
+              );
+
+              // Đọc response body một lần duy nhất
+              let responseData;
+              const contentType = response.headers.get("content-type") || "";
+
+              if (contentType.includes("application/json")) {
+                responseData = await response.json();
+              } else {
+                const textData = await response.text();
+                try {
+                  responseData = JSON.parse(textData);
+                } catch (e) {
+                  responseData = { error: textData };
+                }
+              }
+
+              if (!response.ok) {
+                const errorText =
+                  responseData.error ||
+                  responseData.message ||
+                  `HTTP ${response.status}`;
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+              }
+
+              const data = responseData;
+              if (data.success) {
+                alert("✅ " + (data.message || "Đã xóa sách khỏi thư viện!"));
+                await loadLibraryBooks(libraryId);
+              } else {
+                alert("❌ Lỗi: " + (data.error || "Không thể xóa sách"));
+                console.error("Lỗi xóa sách:", data);
+              }
+            } catch (error) {
+              console.error("❌ Lỗi khi xóa sách:", error);
+              alert("❌ Lỗi kết nối: " + error.message);
+            }
+          }
+
+          async function showAddBookModal(libraryId) {
+            document.getElementById("addBookModalLabel")?.innerHTML =
+      `<i class="bi bi-plus-circle me-2"></i>Thêm sách vào thư viện`;
+
+            const addBookModal = new bootstrap.Modal(
+              document.getElementById("addBookModal") || document.getElementById("addBookToLibraryModal")
+            );
+            addBookModal.show();
+            await loadAvailableBooks(libraryId);
+          }
+
+          async function loadAvailableBooks(libraryId) {
+            const content = document.getElementById("addBookContent");
+            if (!content) return;
+            try {
+              content.innerHTML = `
+                <div class="text-center">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                  </div>
+                </div>
+              `;
+              const response = await fetch(
+                `/admin/thu_vien/books/${libraryId}/available`
+              );
+              const data = await response.json();
+              if (data.success) {
+                renderAvailableBooks(libraryId, data.books);
+              } else {
+                content.innerHTML = `
+                  <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Lỗi:</strong> ${data.error || "Không xác định được lỗi"}
+                  </div>
+                `;
+              }
+            } catch (error) {
+              console.error("Lỗi khi tải sách có sẵn:", error);
+              content.innerHTML = `
+                <div class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Lỗi kết nối:</strong> ${error.message}
+                  <br><small>Kiểm tra console để xem chi tiết lỗi</small>
+                </div>
+              `;
+            }
+          }
+
+          function renderAvailableBooks(libraryId, books) {
+            const content = document.getElementById("addBookContent");
+            if (!content) return;
+            let html = `
+              <div class="row mb-3">
+                <div class="col-12">
+                  <h6><i class="bi bi-book me-2"></i>Chọn sách để thêm vào thư viện</h6>
+                  <p class="text-muted">Chọn sách từ danh sách dưới đây và nhập số lượng muốn thêm</p>
+                </div>
+              </div>
+            `;
+            if (books.length === 0) {
+              html += `
+                <div class="alert alert-info text-center">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Tất cả sách đã được thêm vào thư viện này hoặc không còn sách nào có thể thêm
+                </div>
+              `;
+            } else {
+              html += `
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Chọn</th>
+                        <th>ID</th>
+                        <th>Tên sách</th>
+                        <th>Tác giả</th>
+                        <th>Thể loại</th>
+                        <th>Tổng số lượng</th>
+                        <th>Đã phân bố</th>
+                        <th>Có thể thêm</th>
+                        <th>Số lượng thêm</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+              `;
+              books.forEach((book) => {
+                const tenSach = escapeForTemplate(escapeHTML(book.ten_sach || ""));
+                const tacGia = escapeForTemplate(escapeHTML(book.tac_gia || "Không có"));
+                const theLoai = escapeForTemplate(escapeHTML(book.ten_theloai || "Không có"));
+                const soLuongDaPhanBo = book.so_luong_da_phan_bo || 0;
+                const coTheThem = book.tongsl - soLuongDaPhanBo;
+                html += `
+                  <tr>
+                    <td>
+                      <input type="checkbox" class="form-check-input" value="${book.id_sach}"
+                             onchange="toggleBookSelection(${book.id_sach}, this.checked, ${coTheThem})">
+                    </td>
+                    <td>${book.id_sach}</td>
+                    <td><strong>${tenSach}</strong></td>
+                    <td>${tacGia}</td>
+                    <td>${theLoai}</td>
+                    <td>${book.tongsl || 0}</td>
+                    <td>
+                      <span class="badge bg-warning">${soLuongDaPhanBo}</span>
+                    </td>
+                    <td>
+                      <span class="badge bg-success">${coTheThem}</span>
+                    </td>
+                    <td>
+                      <input type="number" class="form-control form-control-sm"
+                             id="quantity_${book.id_sach}"
+                             min="1" max="${coTheThem}"
+                             value="1" disabled>
+                    </td>
+                  </tr>
+                `;
+              });
+              html += `
+                    </tbody>
+                  </table>
+                </div>
+                <div class="text-end mt-3">
+                  <button class="btn btn-success" onclick="addSelectedBooks(${libraryId})">
+                    <i class="bi bi-plus-circle me-2"></i>Thêm sách đã chọn
+                  </button>
+                </div>
+              `;
+            }
+            content.innerHTML = html;
+          }
+
+          function toggleBookSelection(bookId, isChecked, maxQuantity) {
+            const quantityInput = document.getElementById(`quantity_${bookId}`);
+            quantityInput.disabled = !isChecked;
+            if (!isChecked) {
+              quantityInput.value = 1;
+            } else {
+              quantityInput.max = maxQuantity;
+              quantityInput.value = Math.min(1, maxQuantity);
+            }
+          }
+
+          async function addSelectedBooks(libraryId) {
+            const selectedBooks = [];
+            const checkboxes = document.querySelectorAll(
+              'input[type="checkbox"]:checked'
+            );
+            if (checkboxes.length === 0) {
+              alert("Vui lòng chọn ít nhất một sách!");
+              return;
+            }
+            for (const checkbox of checkboxes) {
+              const bookId = checkbox.value;
+              const quantity = document.getElementById(`quantity_${bookId}`).value;
+              selectedBooks.push({ bookId, quantity: parseInt(quantity) });
+            }
+            try {
+              for (const book of selectedBooks) {
+                const response = await fetch(
+                  `/admin/thu_vien/books/${libraryId}/add`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sach_id: book.bookId, so_luong: book.quantity }),
+                  }
+                );
+                const data = await response.json();
+                if (!data.success) {
+                  throw new Error(data.error || "Lỗi không xác định");
+                }
+              }
+              alert("Đã thêm sách vào thư viện thành công!");
+              const addBookModal = bootstrap.Modal.getInstance(
+                document.getElementById("addBookModal") || document.getElementById("addBookToLibraryModal")
+              );
+              addBookModal?.hide();
+              await loadLibraryBooks(libraryId);
+            } catch (error) {
+              console.error("Lỗi khi thêm sách:", error);
+              alert("Lỗi: " + error.message);
+            }
+          }
+
+          async function updateBookQuantity(libraryId, bookId, newQuantity) {
+            const quantity = parseInt(newQuantity);
+            if (isNaN(quantity) || quantity < 0) {
+              alert("❌ Số lượng không hợp lệ!");
+              // Reload để reset giá trị
+              await loadLibraryBooks(libraryId);
+              return;
+            }
+
+            try {
+              console.log("📝 Đang cập nhật số lượng:", { libraryId, bookId, quantity });
+              const response = await fetch(
+                `/admin/thu_vien/books/${libraryId}/update/${bookId}`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ so_luong: quantity }),
+                }
+              );
+
+              // Đọc response body một lần duy nhất
+              let responseData;
+              const contentType = response.headers.get("content-type") || "";
+
+              if (contentType.includes("application/json")) {
+                responseData = await response.json();
+              } else {
+                const textData = await response.text();
+                try {
+                  responseData = JSON.parse(textData);
+                } catch (e) {
+                  responseData = { error: textData };
+                }
+              }
+
+              if (!response.ok) {
+                const errorText =
+                  responseData.error ||
+                  responseData.message ||
+                  `HTTP ${response.status}`;
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+              }
+
+              const data = responseData;
+              if (data.success) {
+                console.log("✅ Cập nhật số lượng thành công");
+                // Có thể reload để đảm bảo dữ liệu đồng bộ
+                await loadLibraryBooks(libraryId);
+              } else {
+                alert("❌ Lỗi: " + (data.error || "Không thể cập nhật số lượng"));
+                console.error("Lỗi cập nhật số lượng:", data);
+                // Reload để reset giá trị
+                await loadLibraryBooks(libraryId);
+              }
+            } catch (error) {
+              console.error("❌ Lỗi khi cập nhật số lượng:", error);
+              alert("❌ Lỗi kết nối: " + error.message);
+              // Reload để reset giá trị
+              await loadLibraryBooks(libraryId);
+            }
+          }
+
+          // ===== CÁC HÀM KHÁC =====
+          // Lưu ý: window.loadAllBooks và window.testLoadBooksAPI đã được định nghĩa trong script tag sau modal
+
+          // Hàm load sách có sẵn cho thư viện cụ thể (giữ lại để tương thích)
+          async function loadBooksForLibrary(libraryId) {
+            try {
+              const bookSelect = document.getElementById("selectBook");
+              bookSelect.innerHTML = '<option value="">-- Đang tải sách... --</option>';
+              const response = await fetch(`/admin/thu_vien/books/available/${libraryId}`);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              const data = await response.json();
+              bookSelect.innerHTML = '<option value="">-- Chọn sách --</option>';
+              if (data.success && data.books && data.books.length > 0) {
+                data.books.forEach((book) => {
+                  const option = document.createElement("option");
+                  option.value = book.id_sach;
+                  option.textContent = `${book.ten_sach} - ${book.tac_gia} (Còn lại: ${book.slton})`;
+                  option.dataset.available = book.slton;
+                  bookSelect.appendChild(option);
+                });
+              } else {
+                const option = document.createElement("option");
+                option.value = "";
+                option.textContent = "-- Không có sách nào --";
+                option.disabled = true;
+                bookSelect.appendChild(option);
+              }
+            } catch (error) {
+              console.error("Lỗi khi load sách:", error);
+              const bookSelect = document.getElementById("selectBook");
+              bookSelect.innerHTML = '<option value="">-- Lỗi khi tải sách --</option>';
+              alert("Có lỗi xảy ra khi load danh sách sách: " + error.message);
+            }
+          }
+
+          // Hàm addBookToLibrary đã được định nghĩa trong script tag đầu tiên sau modal
+          // Không cần định nghĩa lại ở đây
+
+          function viewLibraryBooks(libraryId) {
+            window.open(`/admin/thu_vien/books/${libraryId}`, "_blank");
+          }
+
+          // Utilities: escape to keep dynamic values safe inside template literals
+          window.escapeForTemplate = function escapeForTemplate(value) {
+            const str = String(value ?? "");
+            return str
+              .replace(/`/g, "\\`")
+              .replace(/\$\{/g, "\\${");
+          };
+          window.escapeHTML = function escapeHTML(value) {
+            const str = String(value ?? "");
+            return str
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;");
+          };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Script đảm bảo Bootstrap modal events hoạt động -->
+    <script>
+      // Hàm loadAllBooks đã được định nghĩa trong script tag sau modal
+      // Script này chỉ đảm bảo Bootstrap đã load và gắn thêm event listener nếu cần
+      (function () {
+        function setupModalEvents() {
+          // Kiểm tra Bootstrap
+          if (typeof bootstrap === "undefined") {
+            console.warn("⚠️ Bootstrap chưa load, sẽ thử lại sau 500ms");
+            setTimeout(setupModalEvents, 500);
+            return;
+          }
+
+          // Kiểm tra hàm loadAllBooks (đã được định nghĩa sớm)
+          if (typeof window.loadAllBooks !== "function") {
+            console.error(
+              "❌ Hàm loadAllBooks không tồn tại! Có thể script chưa load."
+            );
+            // Không retry vì hàm đã được định nghĩa trong script tag trước đó
+            return;
+          }
+
+          console.log("✅ Bootstrap và loadAllBooks đã sẵn sàng");
+
+          // Event listener đã được gắn trong script tag đầu tiên (dòng 790)
+          // Không cần gắn lại ở đây để tránh duplicate
+          console.log(
+            "✅ Bootstrap đã sẵn sàng - Event listener đã được gắn trong script tag đầu tiên"
+          );
+        }
+
+        // Chạy sau khi DOM ready
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", setupModalEvents);
+        } else {
+          setupModalEvents();
+        }
+      })();
+
+      // Event delegation đã được setup trong script tag đầu tiên
+      // Không cần setup lại ở đây
+    </script>
+  </body>
+</html>

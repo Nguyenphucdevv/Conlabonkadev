@@ -1,0 +1,126 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  color: #333;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.register-container {
+  background: linear-gradient(135deg, #fff 80%, #e0e7ff 100%);
+  padding: 30px 25px;
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(80, 80, 160, 0.18), 0 1.5px 0px #b8b8ff inset;
+  width: 400px;
+  max-width: 100%;
+  border: 2px solid #d1c4e9;
+  position: relative;
+  perspective: 800px;
+  transform-style: preserve-3d;
+  animation: floatBook 3s infinite ease-in-out;
+}
+
+@keyframes floatBook {
+  0%,
+  100% {
+    transform: translateY(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotateY(6deg);
+  }
+}
+
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  color: #4b3f72;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #4b3f72;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #f8f8ff;
+  transition: 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #a491ff;
+  outline: none;
+  background-color: #ffffff;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a491ff, #d4b5ff);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #9179f2, #c9a3f2);
+  transform: scale(1.02);
+}
+
+.error-message {
+  color: #e63946;
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.field-error {
+  color: #e63946;
+  font-size: 12px;
+  display: none;
+  margin-top: 8px;
+}
+
+/* Text Nguyễn Văn Phúc ở góc dưới bên trái */
+.logo-text-register {
+  position: fixed;
+  left: 32px;
+  bottom: 32px;
+  z-index: 10;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #4b3f72;
+  letter-spacing: 1px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 10px 18px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(80, 80, 160, 0.12);
+  text-shadow: 0 1px 4px #e0e7ff;
+}

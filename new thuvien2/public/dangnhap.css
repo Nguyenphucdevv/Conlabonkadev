@@ -1,0 +1,153 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #fef9f4, #e7f0ff);
+  color: #333;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.login-container {
+  background: #ffffffc7;
+  padding: 30px 25px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #eaeaea;
+}
+
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  color: #4b3f72;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #4b3f72;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #f8f8ff;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: #a491ff;
+  outline: none;
+  background-color: #ffffff;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a491ff, #d4b5ff);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #9179f2, #c9a3f2);
+  transform: scale(1.02);
+}
+
+a button {
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #28a745, #34c759);
+}
+
+a button:hover {
+  background: linear-gradient(135deg, #218838, #2ea44f);
+  transform: scale(1.02);
+}
+
+a[href="/trangchinh"] button {
+  background: linear-gradient(135deg, #8b4513, #a0522d);
+}
+
+a[href="/trangchinh"] button:hover {
+  background: linear-gradient(135deg, #5c2d0c, #7c3f1a);
+  transform: scale(1.02);
+}
+
+/* Hiệu ứng 3D cho khối đăng nhập */
+.book-3d {
+  box-shadow: 0 12px 32px rgba(80, 80, 160, 0.18), 0 1.5px 0px #b8b8ff inset;
+  background: linear-gradient(135deg, #fff 80%, #e0e7ff 100%);
+  border: 2px solid #d1c4e9;
+  position: relative;
+  perspective: 800px;
+  transform-style: preserve-3d;
+  animation: floatBook 3s infinite ease-in-out;
+}
+@keyframes floatBook {
+  0%,
+  100% {
+    transform: translateY(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotateY(6deg);
+  }
+}
+
+/* Icon sách ở 4 góc */
+.book-icon {
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  z-index: 2;
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 6px #a491ff);
+  transition: transform 0.3s;
+}
+.book-icon.top-left {
+  top: -16px;
+  left: -16px;
+}
+.book-icon.top-right {
+  top: -16px;
+  right: -16px;
+}
+.book-icon.bottom-left {
+  bottom: -16px;
+  left: -16px;
+}
+.book-icon.bottom-right {
+  bottom: -16px;
+  right: -16px;
+}
+.book-icon:hover {
+  transform: scale(1.2) rotate(-10deg);
+}

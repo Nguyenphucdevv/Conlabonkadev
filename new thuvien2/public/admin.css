@@ -1,0 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #ea66e3 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: #333;
+  font-size: 16px;
+}
+
+/* Admin Dashboard Cards */
+.admin-card {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+}
+
+.admin-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.admin-card:hover::before {
+  opacity: 1;
+}
+
+.admin-card .card-body {
+  position: relative;
+  z-index: 2;
+  padding: 2rem;
+}
+
+.icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
+  transition: all 0.3s ease;
+}
+
+.admin-card:hover .icon-wrapper {
+  transform: scale(1.1);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.2) 0%,
+    rgba(118, 75, 162, 0.2) 100%
+  );
+}
+
+/* Specific card colors */
+.admin-card:nth-child(1) .icon-wrapper {
+  background: linear-gradient(
+    135deg,
+    rgba(13, 110, 253, 0.1) 0%,
+    rgba(13, 110, 253, 0.2) 100%
+  );
+}
+
+.admin-card:nth-child(2) .icon-wrapper {
+  background: linear-gradient(
+    135deg,
+    rgba(25, 135, 84, 0.1) 0%,
+    rgba(25, 135, 84, 0.2) 100%
+  );
+}
+
+.admin-card:nth-child(3) .icon-wrapper {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.1) 0%,
+    rgba(255, 193, 7, 0.2) 100%
+  );
+}
+
+.admin-card:nth-child(4) .icon-wrapper {
+  background: linear-gradient(
+    135deg,
+    rgba(13, 202, 240, 0.1) 0%,
+    rgba(13, 202, 240, 0.2) 100%
+  );
+}
+
+.admin-card:nth-child(5) .icon-wrapper {
+  background: linear-gradient(
+    135deg,
+    rgba(220, 53, 69, 0.1) 0%,
+    rgba(220, 53, 69, 0.2) 100%
+  );
+}
+
+.admin-card .card-title {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.admin-card .card-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #6c757d;
+}
+
+/* Header styling */
+header h1 {
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  font-weight: 700;
+}
+
+/* Footer styling */
+footer {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+footer p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .admin-card {
+    margin-bottom: 1rem;
+  }
+
+  .admin-card:hover {
+    transform: translateY(-5px) scale(1.01);
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+}
+
+/* Animation for page load */
+.admin-card {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.admin-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.admin-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.admin-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.admin-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.admin-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Bootstrap Icons styling */
+.bi {
+  font-size: 3rem !important;
+}
+
+.icon-wrapper .bi {
+  display: block;
+  margin: 0 auto;
+}

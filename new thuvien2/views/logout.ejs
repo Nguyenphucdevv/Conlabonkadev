@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng xuất</title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .logout-container {
+            text-align: center;
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        p {
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <div class="spinner"></div>
+        <h2>Đang đăng xuất...</h2>
+        <p>Vui lòng đợi trong giây lát</p>
+    </div>
+
+    <script>
+        // Tự động submit form sau khi clear giỏ hàng
+        window.addEventListener('DOMContentLoaded', function() {
+            // Clear tất cả giỏ hàng của user này
+            // Tìm tất cả keys có dạng bookCart_user_XXX hoặc bookCart_guest
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('bookCart_user_') || key === 'bookCart_guest' || key === 'bookCart')) {
+                    keysToRemove.push(key);
+                }
+            }
+            
+            // Xóa tất cả giỏ hàng
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                console.log('🗑️ Đã xóa giỏ hàng:', key);
+            });
+
+            // Sau khi clear xong, gọi API logout
+            setTimeout(() => {
+                fetch('/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                }).then(() => {
+                    window.location.href = '/login';
+                }).catch(err => {
+                    console.error('Lỗi khi logout:', err);
+                    window.location.href = '/login';
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+

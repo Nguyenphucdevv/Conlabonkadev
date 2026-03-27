@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sửa Thông Tin Sách</title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/udsach.css" />
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+          <a class="navbar-brand" href="/admin">
+            <i class="bi bi-book me-2"></i>Quản lý Sách
+          </a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navMain"
+            aria-controls="navMain"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin">
+                  <i class="bi bi-house-door"></i> Trang chủ
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/thu_vien">
+                  <i class="bi bi-building"></i> Thư viện
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/the_loai">
+                  <i class="bi bi-bookmark"></i> Thể loại
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="/admin/sach">
+                  <i class="bi bi-book"></i> Sách
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/muon_sach">
+                  <i class="bi bi-calendar-check"></i> Mượn Sách
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-warning fw-bold" href="/">
+                  <i class="bi bi-geo-alt-fill"></i> Xem Bản đồ
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container py-4">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="/admin"><i class="bi bi-house-door"></i> Trang chủ</a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="/admin/sach"><i class="bi bi-book"></i> Sách</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <i class="bi bi-pencil-square"></i> Sửa thông tin
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Form Card -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">
+                <i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Thông Tin Sách
+              </h5>
+            </div>
+            <div class="card-body">
+              <form
+                name="updateSach"
+                action="/admin/sach/update/<%= sach.id_sach %>"
+                method="POST"
+                enctype="multipart/form-data"
+                onsubmit="return validateForm()"
+                id="updateSachForm"
+              >
+                <div class="row g-3">
+                  <!-- ID Sách (Read-only) -->
+                  <div class="col-12">
+                    <div class="alert alert-info">
+                      <i class="bi bi-info-circle me-2"></i>
+                      <strong>Mã sách:</strong> #<%= sach.id_sach %>
+                    </div>
+                  </div>
+
+                  <!-- Tên Sách -->
+                  <div class="col-md-6">
+                    <label for="Ten_sach" class="form-label">
+                      <i class="bi bi-book me-1"></i>Tên Sách
+                      <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="Ten_sach"
+                      id="Ten_sach"
+                      class="form-control"
+                      value="<%= sach.ten_sach %>"
+                      placeholder="Nhập tên sách"
+                      required
+                    />
+                  </div>
+
+                  <!-- Tác Giả -->
+                  <div class="col-md-6">
+                    <label for="Tac_gia" class="form-label">
+                      <i class="bi bi-person me-1"></i>Tác Giả
+                    </label>
+                    <input
+                      type="text"
+                      name="Tac_gia"
+                      id="Tac_gia"
+                      class="form-control"
+                      value="<%= sach.tac_gia || '' %>"
+                      placeholder="Nhập tên tác giả"
+                    />
+                  </div>
+
+                  <!-- Năm Xuất Bản -->
+                  <div class="col-md-4">
+                    <label for="Nam_xuat_ban" class="form-label">
+                      <i class="bi bi-calendar-event me-1"></i>Năm Xuất Bản
+                    </label>
+                    <input
+                      type="number"
+                      name="Nam_xuat_ban"
+                      id="Nam_xuat_ban"
+                      class="form-control"
+                      value="<%= sach.nam_xuat_ban || '' %>"
+                      placeholder="Ví dụ: 2024"
+                      min="1900"
+                      max="<%= new Date().getFullYear() %>"
+                    />
+                  </div>
+
+                  <!-- Thể Loại -->
+                  <div class="col-md-8">
+                    <label for="ID_theloai" class="form-label">
+                      <i class="bi bi-bookmark me-1"></i>Thể Loại
+                      <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      name="ID_theloai"
+                      id="ID_theloai"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">-- Chọn thể loại --</option>
+                      <% theloai.forEach(tl => { %>
+                      <option
+                        value="<%= tl.id_theloai %>"
+                        <%= tl.id_theloai == sach.id_theloai ? 'selected' : '' %>
+                      >
+                        <%= tl.ten_theloai %>
+                      </option>
+                      <% }) %>
+                    </select>
+                  </div>
+
+                  <!-- Tổng Số Lượng -->
+                  <div class="col-md-6">
+                    <label for="tongsl" class="form-label">
+                      <i class="bi bi-stack me-1"></i>Tổng Số Lượng
+                    </label>
+                    <input
+                      type="number"
+                      name="tongsl"
+                      id="tongsl"
+                      class="form-control"
+                      value="<%= sach.tongsl || 0 %>"
+                      placeholder="Tổng số lượng"
+                      min="0"
+                    />
+                    <small class="form-text text-muted">
+                      <i class="bi bi-info-circle"></i> Tổng số sách có trong hệ thống
+                    </small>
+                  </div>
+
+                  <!-- Số Lượng Tồn -->
+                  <div class="col-md-6">
+                    <label for="slton" class="form-label">
+                      <i class="bi bi-box-seam me-1"></i>Số Lượng Tồn
+                    </label>
+                    <input
+                      type="number"
+                      name="slton"
+                      id="slton"
+                      class="form-control"
+                      value="<%= sach.slton || 0 %>"
+                      placeholder="Số lượng còn lại"
+                      min="0"
+                    />
+                    <small class="form-text text-muted">
+                      <i class="bi bi-info-circle"></i> Số sách còn lại chưa phân bổ
+                    </small>
+                  </div>
+
+                  <!-- Giá Bán -->
+                  <% if (sach.gia !== undefined) { %>
+                  <div class="col-md-6">
+                    <label for="gia" class="form-label">
+                      <i class="bi bi-currency-dollar me-1"></i>Giá Bán (VNĐ)
+                    </label>
+                    <input
+                      type="number"
+                      name="gia"
+                      id="gia"
+                      class="form-control"
+                      value="<%= sach.gia || 0 %>"
+                      placeholder="Nhập giá bán"
+                      min="0"
+                      step="1000"
+                    />
+                  </div>
+                  <% } %>
+
+                  <!-- Giá Gốc -->
+                  <% if (sach.gia_goc !== undefined) { %>
+                  <div class="col-md-6">
+                    <label for="gia_goc" class="form-label">
+                      <i class="bi bi-tag me-1"></i>Giá Gốc (VNĐ)
+                    </label>
+                    <input
+                      type="number"
+                      name="gia_goc"
+                      id="gia_goc"
+                      class="form-control"
+                      value="<%= sach.gia_goc || 0 %>"
+                      placeholder="Nhập giá gốc"
+                      min="0"
+                      step="1000"
+                    />
+                  </div>
+                  <% } %>
+
+                  <!-- File PDF -->
+                  <div class="col-12">
+                    <label for="digital_file" class="form-label">
+                      <i class="bi bi-file-earmark-pdf me-1"></i>File Số (PDF)
+                    </label>
+                    <input
+                      type="file"
+                      name="digital_file"
+                      id="digital_file"
+                      class="form-control"
+                      accept=".pdf"
+                    />
+                    <small class="form-text text-muted">
+                      <i class="bi bi-info-circle"></i> Chọn file PDF mới để thay thế (nếu có)
+                    </small>
+
+                    <!-- File hiện tại -->
+                    <% if (sach.digital_file) { %>
+                    <div class="mt-2 p-3 bg-light rounded">
+                      <p class="mb-2">
+                        <strong>File hiện tại:</strong>
+                      </p>
+                      <a
+                        href="<%= sach.digital_file %>"
+                        target="_blank"
+                        class="btn btn-sm btn-outline-secondary"
+                      >
+                        <i class="bi bi-file-earmark-pdf me-1"></i>Xem file PDF
+                      </a>
+                      <input
+                        type="hidden"
+                        name="existing_digital_file"
+                        value="<%= sach.digital_file %>"
+                      />
+                      <div class="form-check mt-2">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          name="delete_digital_file"
+                          id="delete_digital_file"
+                          value="true"
+                        />
+                        <label class="form-check-label" for="delete_digital_file">
+                          <i class="bi bi-trash text-danger me-1"></i>Xóa liên kết file PDF
+                        </label>
+                      </div>
+                    </div>
+                    <% } %>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="col-12 mt-4">
+                    <div class="d-flex gap-2 justify-content-end">
+                      <a href="/admin/sach" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Hủy
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Cập Nhật
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Form Validation Script -->
+    <script>
+      function validateForm() {
+        const tenSach = document.forms["updateSach"]["Ten_sach"].value.trim();
+        const idTheLoai = document.forms["updateSach"]["ID_theloai"].value;
+        const namXuatBan = document.forms["updateSach"]["Nam_xuat_ban"].value;
+        const slton = document.forms["updateSach"]["slton"].value;
+        const tongsl = document.forms["updateSach"]["tongsl"].value;
+
+        if (!tenSach || !idTheLoai) {
+          alert("Tên sách và thể loại là bắt buộc!");
+          return false;
+        }
+
+        if (namXuatBan && (namXuatBan < 1900 || namXuatBan > new Date().getFullYear())) {
+          alert("Năm xuất bản không hợp lệ!");
+          return false;
+        }
+
+        if (slton && slton < 0) {
+          alert("Số lượng tồn phải không âm!");
+          return false;
+        }
+
+        if (tongsl && tongsl < 0) {
+          alert("Tổng số lượng phải không âm!");
+          return false;
+        }
+
+        if (parseInt(slton) > parseInt(tongsl)) {
+          alert("Số lượng tồn không được lớn hơn tổng số lượng!");
+          return false;
+        }
+
+        return true;
+      }
+
+      // Hiển thị thông báo thành công (nếu có)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('success')) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.innerHTML = `
+          <i class="bi bi-check-circle me-2"></i>
+          Cập nhật thông tin sách thành công!
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        // Auto dismiss sau 3 giây
+        setTimeout(() => {
+          alertDiv.remove();
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>

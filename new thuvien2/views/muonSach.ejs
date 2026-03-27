@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Mượn Sách</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="/muonsach.css" />
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+          <a class="navbar-brand" href="/admin">
+            <i class="bi bi-journal-text me-2"></i>Quản lý Mượn Sách
+          </a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navMain"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin">
+                  <i class="bi bi-house-door me-1"></i>Trang chủ
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/thu_vien">
+                  <i class="bi bi-building me-1"></i>Thư viện
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/the_loai">
+                  <i class="bi bi-tags me-1"></i>Thể loại
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/sach">
+                  <i class="bi bi-book me-1"></i>Sách
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="/admin/muon_sach">
+                  <i class="bi bi-journal-text me-1"></i>Mượn sách
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/don_hang">
+                  <i class="bi bi-cart-check me-1"></i>Đơn hàng
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/shop">
+                  <i class="bi bi-shop me-1"></i>Cửa hàng
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/">
+                  <i class="bi bi-geo-alt-fill me-1"></i>Xem bản đồ
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container py-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5><i class="bi bi-plus-circle me-2"></i>Thêm Mượn Sách Mới</h5>
+        </div>
+        <div class="card-body">
+          <form
+            method="POST"
+            action="/admin/muon_sach/add"
+            id="addMuonSachForm"
+          >
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Tên Sách</label>
+                <select
+                  name="id_sach"
+                  id="id_sach"
+                  class="form-select"
+                  required
+                >
+                  <option value="">Chọn sách</option>
+                  <% sach.forEach(item => { %>
+                  <option value="<%= item.id_sach %>">
+                    <%= item.ten_sach %>
+                  </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Tên Người Mượn</label>
+                <input
+                  type="text"
+                  name="ten_nguoi_muon"
+                  id="ten_nguoi_muon"
+                  class="form-control"
+                  required
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Ngày Mượn</label>
+                <input
+                  type="date"
+                  name="ngay_muon"
+                  id="ngay_muon"
+                  class="form-control"
+                  value="<%= new Date().toISOString().split('T')[0] %>"
+                  required
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Ngày Trả</label>
+                <input
+                  type="date"
+                  name="ngay_tra"
+                  id="ngay_tra"
+                  class="form-control"
+                />
+              </div>
+
+              <div class="col-12">
+                <button class="btn btn-primary">
+                  <i class="bi bi-plus-circle me-2"></i>Mượn Sách
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h5><i class="bi bi-list-ul me-2"></i>Danh Sách Mượn Sách</h5>
+        </div>
+        <div class="card-body">
+          <% if (!muonSach || muonSach.length === 0) { %>
+          <div class="alert alert-info text-center">
+            <h6>Không có bản ghi mượn sách nào</h6>
+            <p>Bảng trống hoặc có lỗi database</p>
+          </div>
+          <% } else { %>
+
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Mã</th>
+                  <th>Tên Sách</th>
+                  <th>Người Mượn</th>
+                  <th>Liên hệ</th>
+                  <th>Thư viện</th>
+                  <th>Ngày Mượn</th>
+                  <th>Ngày Trả</th>
+                  <th>Trạng thái</th>
+                  <th>Ghi chú</th>
+                  <th class="text-end">Hành Động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% muonSach.forEach(item => { %>
+                <tr>
+                  <td><strong><%= item.id_muonsach %></strong></td>
+                  <td><%= item.ten_sach %></td>
+                  <td><%= item.ten_nguoi_muon %></td>
+                  <td>
+                    <% if (item.email_nguoi_muon) { %>
+                    <div>
+                      <strong>Email:</strong> <%= item.email_nguoi_muon %>
+                    </div>
+                    <% } %> <% if (item.so_dien_thoai) { %>
+                    <div><strong>SĐT:</strong> <%= item.so_dien_thoai %></div>
+                    <% } %>
+                  </td>
+                  <td><%= item.thu_vien || "Không xác định" %></td>
+                  <td>
+                    <%= new Date(item.ngay_muon).toLocaleDateString('vi-VN') %>
+                  </td>
+                  <td>
+                    <%= item.ngay_tra ? new
+                    Date(item.ngay_tra).toLocaleDateString('vi-VN') : 'Chưa trả'
+                    %>
+                  </td>
+
+                  <% let trangThai = item.trang_thai || 'Chờ xử lý'; let
+                  badgeClass = 'bg-secondary'; if
+                  (trangThai.toLowerCase().includes('đã duyệt') ||
+                  trangThai.toLowerCase().includes('đã chấp nhận')) badgeClass =
+                  'bg-success'; else if (trangThai.toLowerCase().includes('chờ')
+                  || trangThai.toLowerCase().includes('pending')) badgeClass =
+                  'bg-warning text-dark'; else if
+                  (trangThai.toLowerCase().includes('từ chối')) badgeClass =
+                  'bg-danger'; %>
+                  <td>
+                    <span class="badge <%= badgeClass %>"
+                      ><%= trangThai %></span
+                    >
+                  </td>
+
+                  <td><%= item.ghi_chu || "Không có" %></td>
+
+                  <td class="text-end">
+                    <div class="action-buttons">
+                      <% let isChoXuLy = trangThai.toLowerCase().includes('chờ')
+                      || trangThai.toLowerCase().includes('pending'); %> <% if
+                      (isChoXuLy) { %>
+                      <button
+                        data-action="approve"
+                        data-id="<%= item.id_muonsach %>"
+                        class="btn-action btn-approve"
+                        title="Duyệt yêu cầu"
+                      >
+                        <i class="bi bi-check-circle"></i>
+                        <span>Duyệt</span>
+                      </button>
+                      <button
+                        data-action="reject"
+                        data-id="<%= item.id_muonsach %>"
+                        class="btn-action btn-reject"
+                        title="Từ chối yêu cầu"
+                      >
+                        <i class="bi bi-x-circle"></i>
+                        <span>Từ chối</span>
+                      </button>
+                      <% } %>
+                      <a
+                        href="/admin/muon_sach/update/<%= item.id_muonsach %>"
+                        class="btn-action btn-edit"
+                        title="Sửa thông tin"
+                      >
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Sửa</span>
+                      </a>
+                      <a
+                        onclick="return confirm('Xóa bản ghi?')"
+                        href="/admin/muon_sach/delete/<%= item.id_muonsach %>"
+                        class="btn-action btn-delete"
+                        title="Xóa bản ghi"
+                      >
+                        <i class="bi bi-trash"></i>
+                        <span>Xóa</span>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Hàm duyệt yêu cầu mượn sách
+      async function approveMuonSach(id) {
+        if (!confirm("Bạn có chắc chắn muốn duyệt yêu cầu mượn sách này?")) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/admin/muon_sach/approve/${id}`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            alert(data.message || "Đã duyệt yêu cầu mượn sách thành công!");
+            location.reload(); // Reload trang để cập nhật trạng thái
+          } else {
+            alert(data.message || "Có lỗi xảy ra khi duyệt yêu cầu");
+          }
+        } catch (error) {
+          console.error("Lỗi:", error);
+          alert("Có lỗi xảy ra khi duyệt yêu cầu mượn sách");
+        }
+      }
+
+      // Hàm từ chối yêu cầu mượn sách
+      async function rejectMuonSach(id) {
+        if (!confirm("Bạn có chắc chắn muốn từ chối yêu cầu mượn sách này?")) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/admin/muon_sach/reject/${id}`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            alert(data.message || "Đã từ chối yêu cầu mượn sách");
+            location.reload(); // Reload trang để cập nhật trạng thái
+          } else {
+            alert(data.message || "Có lỗi xảy ra khi từ chối yêu cầu");
+          }
+        } catch (error) {
+          console.error("Lỗi:", error);
+          alert("Có lỗi xảy ra khi từ chối yêu cầu mượn sách");
+        }
+      }
+
+      // Event delegation cho các nút hành động
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-action]").forEach((button) => {
+          button.addEventListener("click", function (e) {
+            e.preventDefault();
+            const action = this.getAttribute("data-action");
+            const id = this.getAttribute("data-id");
+
+            if (action === "approve") {
+              approveMuonSach(id);
+            } else if (action === "reject") {
+              rejectMuonSach(id);
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

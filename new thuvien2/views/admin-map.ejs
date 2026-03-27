@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Map - Quản Lý Bản Đồ Thư Viện</title>
+    <link rel="icon" type="image/jpeg" href="/images/thuvienavt.jpg" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <!-- Custom Admin Map CSS -->
+    <link rel="stylesheet" href="/admin-map.css" />
+  </head>
+  <body class="admin-map-body">
+    <!-- Admin Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark admin-navbar fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold admin-brand" href="/admin">
+          <i class="bi bi-geo-alt-fill me-2"></i>
+          <span class="brand-text">ADMIN MAP</span>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#adminNavbar"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="adminNavbar">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link admin-nav-link" href="/admin">
+                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link admin-nav-link" href="/admin/thu_vien">
+                <i class="bi bi-building me-1"></i>Thư Viện
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link admin-nav-link" href="/admin/xem-anh">
+                <i class="bi bi-images me-1"></i>Quản Lý Ảnh
+              </a>
+            </li>
+            <li class="nav-item">
+              <span class="nav-link admin-user-info">
+                <i class="bi bi-person-circle me-1"></i>
+                <span class="user-name"
+                  ><%= user ? user.tai_khoan : 'Admin' %></span
+                >
+              </span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link admin-nav-link logout-link" href="/logout">
+                <i class="bi bi-box-arrow-right me-1"></i>Đăng Xuất
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header Section -->
+      <div class="header-section">
+        <div class="container-fluid">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="welcome-title">
+                <i class="bi bi-geo-alt-fill me-3"></i>
+                Quản Lý Bản Đồ Thư Viện
+              </h1>
+              <p class="welcome-subtitle">
+                Chào mừng
+                <strong><%= user ? user.tai_khoan : 'Admin' %></strong>! Quản lý
+                và theo dõi thư viện trên bản đồ.
+              </p>
+            </div>
+            <div class="col-md-4">
+              <div class="admin-stats">
+                <div class="stat-item">
+                  <span class="stat-number" id="total-libraries">0</span>
+                  <span class="stat-label">Thư Viện</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number" id="total-books">0</span>
+                  <span class="stat-label">Sách</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number" id="total-categories">0</span>
+                  <span class="stat-label">Thể Loại</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Controls Section -->
+      <div class="search-section">
+        <div class="container-fluid">
+          <div class="row justify-content-center">
+            <div class="col-lg-10">
+              <div class="search-card">
+                <div class="row g-3 align-items-center">
+                  <div class="col-md-4">
+                    <div class="search-input-group">
+                      <span class="search-icon">
+                        <i class="bi bi-search"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="admin-main-search"
+                        class="form-control search-input"
+                        placeholder="Tìm kiếm thư viện..."
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="admin-controls">
+                      <button
+                        id="admin-filter-button"
+                        class="btn btn-outline-primary btn-sm"
+                      >
+                        <i class="bi bi-funnel me-1"></i>Bộ Lọc
+                      </button>
+                      <button
+                        id="admin-nearest-button"
+                        class="btn btn-outline-success btn-sm"
+                      >
+                        <i class="bi bi-geo-alt me-1"></i>Gần Nhất
+                      </button>
+                      <button
+                        id="admin-list-button"
+                        class="btn btn-outline-info btn-sm"
+                      >
+                        <i class="bi bi-list-ul me-1"></i>Danh Sách
+                      </button>
+                      <button
+                        id="admin-restore-button"
+                        class="btn btn-outline-warning btn-sm"
+                      >
+                        <i class="bi bi-arrow-clockwise me-1"></i>Khôi Phục
+                      </button>
+                      <button
+                        id="admin-search-button"
+                        class="btn btn-primary btn-sm"
+                      >
+                        <i class="bi bi-search me-1"></i>Tìm Kiếm
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Container -->
+      <div class="map-section">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-12">
+              <div id="admin-map" class="admin-map-container">
+                <!-- Map Loading -->
+                <div class="admin-map-loading">
+                  <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <h4>🗺️ Bản Đồ Đang Tải...</h4>
+                    <p>Hệ thống đang khởi tạo bản đồ quản lý</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Control Panel -->
+    <div class="floating-controls">
+      <div class="control-group">
+        <button
+          id="admin-locate-button"
+          class="btn btn-primary btn-sm"
+          title="Vị Trí Của Tôi"
+        >
+          <i class="bi bi-geo-alt-fill"></i>
+        </button>
+        <button
+          id="admin-fullscreen-button"
+          class="btn btn-secondary btn-sm"
+          title="Toàn Màn Hình"
+        >
+          <i class="bi bi-arrows-fullscreen"></i>
+        </button>
+        <button
+          id="admin-check-map-button"
+          class="btn btn-info btn-sm"
+          title="Kiểm Tra Map"
+        >
+          <i class="bi bi-heart-pulse"></i>
+        </button>
+        <button
+          id="admin-export-button"
+          class="btn btn-success btn-sm"
+          title="Xuất Dữ Liệu"
+        >
+          <i class="bi bi-download"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="adminFilterModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-funnel me-2"></i>Bộ Lọc Nâng Cao
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <h6 class="filter-section-title">
+                  <i class="bi bi-wifi me-2"></i>Tiện Ích Thư Viện
+                </h6>
+                <div class="filter-options">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="admin-filter-wifi"
+                    />
+                    <label class="form-check-label" for="admin-filter-wifi"
+                      >WiFi</label
+                    >
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="admin-filter-phong-doc"
+                    />
+                    <label class="form-check-label" for="admin-filter-phong-doc"
+                      >Phòng Đọc</label
+                    >
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="admin-filter-canteen"
+                    />
+                    <label class="form-check-label" for="admin-filter-canteen"
+                      >Canteen</label
+                    >
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="admin-filter-dieu-hoa"
+                    />
+                    <label class="form-check-label" for="admin-filter-dieu-hoa"
+                      >Điều Hòa</label
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Loại Thư Viện</label>
+                <select id="admin-filter-phanloai" class="form-select">
+                  <option value="">Tất Cả Loại</option>
+                  <option value="Thư viện công cộng">Thư Viện Công Cộng</option>
+                  <option value="Thư viện tư nhân">Thư Viện Tư Nhân</option>
+                  <option value="Thư viện trường học">
+                    Thư Viện Trường Học
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Thể Loại Sách</label>
+                <input
+                  type="text"
+                  id="admin-filter-genre"
+                  class="form-control"
+                  placeholder="Nhập thể loại..."
+                />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              id="admin-reset-filter"
+              class="btn btn-outline-secondary"
+            >
+              <i class="bi bi-arrow-clockwise me-1"></i>Đặt Lại
+            </button>
+            <button
+              type="button"
+              id="admin-apply-filter"
+              class="btn btn-primary"
+            >
+              <i class="bi bi-check-circle me-1"></i>Áp Dụng
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Libraries List Modal -->
+    <div class="modal fade" id="adminLibrariesModal" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-building me-2"></i>Danh Sách Thư Viện
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <input
+                  type="text"
+                  id="admin-library-search"
+                  class="form-control"
+                  placeholder="Tìm kiếm thư viện..."
+                />
+              </div>
+              <div class="col-md-3">
+                <select id="admin-library-type-filter" class="form-select">
+                  <option value="">Tất Cả Loại</option>
+                  <option value="Thư viện công cộng">Thư Viện Công Cộng</option>
+                  <option value="Thư viện tư nhân">Thư Viện Tư Nhân</option>
+                  <option value="Thư viện trường học">
+                    Thư Viện Trường Học
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <button
+                  id="admin-refresh-libraries"
+                  class="btn btn-primary w-100"
+                >
+                  <i class="bi bi-arrow-clockwise me-1"></i>Làm Mới
+                </button>
+              </div>
+            </div>
+            <div id="admin-libraries-content" class="admin-libraries-content">
+              <div class="text-center p-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Đang tải danh sách thư viện...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="adminSuccessModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">
+              <i class="bi bi-check-circle me-2"></i>Thành Công!
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p id="admin-success-message"></p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-success"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-check me-1"></i>Đã Hiểu
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
+    <script src="/admin/admin-map.js"></script>
+  </body>
+</html>

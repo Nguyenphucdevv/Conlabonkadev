@@ -1,0 +1,169 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+/* Reset nhẹ nhàng, tránh xung đột với Bootstrap */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.6;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #333;
+  padding: 0; /* container sẽ đảm nhiệm padding */
+}
+
+/* Navbar nâng nhẹ độ đổ bóng */
+.navbar {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Card tinh tế hơn */
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Form controls: giữ nguyên Bootstrap, chỉ thêm transition */
+.form-control,
+.form-select,
+.btn {
+  transition: all 0.2s ease;
+}
+
+/* Switch đẹp hơn một chút */
+.form-check-input:checked {
+  background-color: #4b3f72;
+  border-color: #4b3f72;
+}
+
+/* Table tinh chỉnh khoảng cách và hover */
+.table > :not(caption) > * > * {
+  padding: 0.9rem 0.75rem;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(164, 145, 255, 0.08);
+}
+
+/* Nút hành động trong bảng - Style mới tinh tế */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-action::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-action:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-action i {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.btn-action:hover i {
+  transform: scale(1.15);
+}
+
+.btn-action span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Nút Sửa - Màu xanh dương nhẹ nhàng */
+.btn-edit {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-edit:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+}
+
+/* Nút Xóa - Màu đỏ cam nhẹ nhàng */
+.btn-delete {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-delete:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.25);
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .btn-action {
+    width: 100%;
+    justify-content: center;
+    padding: 0.6rem 1rem;
+  }
+}
+
+/* Alert spacing */
+.alert {
+  border-radius: 10px;
+}
