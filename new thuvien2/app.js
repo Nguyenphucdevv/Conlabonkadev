@@ -281,3 +281,6 @@ app.listen(port, () => {
     console.log('  5. Verify admin.ejs renders');
     console.log('  6. Test other admin routes');
 });
+
+// Export app cho Vercel serverless functions
+module.exports = app;
